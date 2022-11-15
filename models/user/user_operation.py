@@ -43,30 +43,36 @@ def get_user_by_id(db:Session,user_id:int):
     user = db.query(*userTup).filter(User.id == user_id).first()
     return user
 #根据某个用户发动态
-def get_user_by_dynamic(db:Session,uid:int,content:str=''):
+def get_user_by_dynamic(db:Session,uid:int,content:str='',positioning:str=''):
     userTup = (User.id, User.username, User.avatar, User.nickname)
     user=db.query(*userTup).filter(User.id==uid).one()
     create_time = int(time.time())
     if user:
         dy=db.query(Dynamic).filter(Dynamic.dynamic_id==uid).all()
-        last_time=dy[len(dy)-1].create_time
-        #20s内不能重复发动态
-        if (create_time-last_time)<20:
-            return -1
+        if len(dy)>0:
+            last_time=dy[len(dy)-1].create_time
+            #20s内不能重复发动态
+            if (create_time-last_time)<20:
+                return -1
         dynamic = Dynamic(dynamic_id=uid, content=content, create_time=create_time,
-                          avatar=user.avatar, username=user.username)
+                          avatar=user.avatar, username=user.username,positioning=positioning)
         db.add(dynamic)
         db.commit()
         db.flush()
         db.refresh(dynamic)
         return dynamic
 #编辑数据
-def user_update_avter(db:Session,id:int,nickname:str='',avatar:str=''):
+def user_update_avter(db:Session,id:int,avatar:str=''):
+    user=db.query(User).filter(User.id==id).first()
+    if avatar:
+        user.avatar=avatar
+    db.commit()
+    db.flush()
+    return user
+def user_update_data(db:Session,id:int,nickname:str=''):
     user=db.query(User).filter(User.id==id).first()
     if nickname:
         user.nickname=nickname
-    if avatar:
-        user.avatar=avatar
     db.commit()
     db.flush()
     return user

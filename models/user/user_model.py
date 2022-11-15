@@ -15,6 +15,7 @@ class User(Base):
     nickname = Column(String(255),nullable=False)
     reg_time = Column(Integer,nullable=False)
 
+
 class Dynamic(Base):
     __tablename__ = 'dynamic'
     id = Column(Integer, primary_key=True,autoincrement=True)
@@ -24,3 +25,4 @@ class Dynamic(Base):
     create_time = Column(Integer,nullable=False)
     dynamic_id=Column(Integer,ForeignKey("users.id"))
     dyname_backref=relationship("User",backref = "stu2class")
+    positioning = Column(String(255), nullable=False)

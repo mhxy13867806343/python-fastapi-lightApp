@@ -5,7 +5,7 @@ from fastapi.security import OAuth2PasswordRequestForm
 from fastapi.responses import JSONResponse
 from datetime import datetime,timedelta
 from extend.get_db import get_db
-from models.user.user_operation import get_user_login_by_pwd,post_user_by_zc,get_user_by_id,get_user_by_dynamic,user_update_avter
+from models.user.user_operation import user_update_data,get_user_login_by_pwd,post_user_by_zc,get_user_by_id,get_user_by_dynamic,user_update_avter
 from utils.get_md5_data import get_md5_pwd
 from extend.status_code import status_code200,status_code6001,status_code6000,status_code6003,status_code6007,status_code6009
 from extend.const_Num import EXPIRE_TIME
@@ -79,8 +79,15 @@ def get_user_by_token(id:User = Depends(createToken.pase_token),db:Session=Depen
 
 #根据用户token去获取用户信息，并可以进行数据的添加
 @users.post('/sendpublish',tags=["用户模块"],name="根据token获取用户信息并进行数据的添加")
-def postSendpublish(id:User = Depends(createToken.pase_token),db:Session=Depends(get_db),content:str=Form(...)):
-    user = get_user_by_dynamic(db,id,content)
+def postSendpublish(id:User = Depends(createToken.pase_token),db:Session=Depends(get_db),content:str=Form(...),
+positioning:Optional[str]=Form('')
+                    ):
+    if (not id) or (id==""):
+        return {
+            "code": status_code6007,
+            "msg": "用户信息不正确",
+        }
+    user = get_user_by_dynamic(db,id,content,positioning)
     if(user==-1):
         return {
             "msg": f"添加数据时间过短",
@@ -107,4 +114,14 @@ async def upload(avatar:Optional[UploadFile]=File(None),
         "code":200,
         "msg":"修改成功",
         "data":_files
+    }
+@users.post("/userSave",tags=["用户模块"],name="用户信息保存")
+async def userSave(
+                 id:int=Form(...),
+                 nickname:Optional[str]=Form(None),
+                 db:Session=Depends(get_db)):
+    user_update_data(db,id,nickname)
+    return {
+        "code":200,
+        "msg":"修改成功",
     }
