@@ -1,16 +1,18 @@
 #数据库操作
 from sqlalchemy.orm import Session
+
 from fastapi.responses import JSONResponse
 import time
 import uuid
 from models.user.user_model import User,Dynamic
+
 
 def create_uuid(name,time,pwd):
     data="{}{}{}".format(name,time,pwd)
     d=uuid.uuid5(uuid.NAMESPACE_DNS, data)
     return d
 
-#登录用户 -1 用户名不存在 -2 密码错误 user 登录成功
+#登录用户 -1 用户名不存在 -2 密码错误 users 登录成功
 def get_user_login_by_pwd(db:Session,username:str='',pwd:str='')->User:
     userTup = (User.id, User.username, User.avatar, User.nickname, User.reg_time)
     _username= db.query(*userTup).filter(User.username==username).first()
@@ -58,3 +60,13 @@ def get_user_by_dynamic(db:Session,uid:int,content:str=''):
         db.flush()
         db.refresh(dynamic)
         return dynamic
+#编辑数据
+def user_update_avter(db:Session,id:int,nickname:str='',avatar:str=''):
+    user=db.query(User).filter(User.id==id).first()
+    if nickname:
+        user.nickname=nickname
+    if avatar:
+        user.avatar=avatar
+    db.commit()
+    db.flush()
+    return user

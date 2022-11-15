@@ -1,3 +1,4 @@
-start=1668161772
-end=1668162063
-print(end-start)
+from typing import Union,Optional
+def f(a:str,b:Optional[int]=1):
+    print(a,b)
+f("a",3)

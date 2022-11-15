@@ -1,4 +1,10 @@
 from pydantic import BaseModel
 from typing import Optional
 class UserToekRet(BaseModel):
-    username:Optional[str]=None
+    id:Optional[int]
+    username:Optional[str]
+    nickname:Optional[str]
+    avatar:Optional[str]
+    content:Optional[str]
+    create_time:Optional[int]
+    dynamic_id:Optional[int]

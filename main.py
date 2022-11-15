@@ -1,8 +1,9 @@
 import uvicorn
 from fastapi import FastAPI,Depends
+from fastapi.staticfiles import StaticFiles #静态文件操作
 from fastapi.middleware.cors import CORSMiddleware # CORS
 from extend.db import LOCSESSION,Base,ENGIN # for database
-from apps.user.views import users as user_routerApi # for user
+from apps.user.views import users as user_routerApi # for users
 app = FastAPI(
     title="轻应用",
     description="轻应用 api",
@@ -18,7 +19,8 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
+# 静态文件
+app.mount('/uploads', StaticFiles(directory='uploads'), name='uploads')
 # 创建数据库
 Base.metadata.create_all(bind=ENGIN)
 
