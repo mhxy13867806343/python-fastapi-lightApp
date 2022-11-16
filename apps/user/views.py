@@ -100,7 +100,6 @@ positioning:Optional[str]=Form('')
 @users.post("/upload",tags=["用户模块"],name="上传头像")
 async def upload(avatar:Optional[UploadFile]=File(None),
                  id:int=Form(...),
-                 nickname:Optional[str]=Form(None),
                  db:Session=Depends(get_db)):
     _files=''
     if avatar:
@@ -109,7 +108,7 @@ async def upload(avatar:Optional[UploadFile]=File(None),
 
         with open(_files,'wb')as f:
             f.write(rep)
-    user_update_avter(db,id,nickname,_files)
+    user_update_avter(db,id,_files)
     return {
         "code":200,
         "msg":"修改成功",
@@ -119,9 +118,19 @@ async def upload(avatar:Optional[UploadFile]=File(None),
 async def userSave(
                  id:int=Form(...),
                  nickname:Optional[str]=Form(None),
+        avatar:Optional[str]=Form(None),
                  db:Session=Depends(get_db)):
-    user_update_data(db,id,nickname)
+    user_update_data(db,id,nickname,avatar)
+    user = get_user_by_id(db, id)
+    data_user = {
+        "id": user.id,
+        "username": user.username,
+        "avatar": user.avatar,
+        "reg_time": user.reg_time,
+        "nickname": user.nickname,
+    }
     return {
         "code":200,
         "msg":"修改成功",
+        "data": data_user,
     }

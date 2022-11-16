@@ -69,10 +69,12 @@ def user_update_avter(db:Session,id:int,avatar:str=''):
     db.commit()
     db.flush()
     return user
-def user_update_data(db:Session,id:int,nickname:str=''):
+def user_update_data(db:Session,id:int,nickname:str='',avatar:str=''):
     user=db.query(User).filter(User.id==id).first()
     if nickname:
         user.nickname=nickname
+    if avatar:
+        user.avatar=avatar
     db.commit()
     db.flush()
     return user
