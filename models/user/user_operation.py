@@ -81,13 +81,8 @@ def user_update_data(db:Session,id:int,nickname:str='',avatar:str=''):
     return user
 #获取用户标签
 def get_user_tag(db:Session,id:int)->list:
-    user=db.query(User).filter(User.id==id).first()
-
-    if user:
-        label = db.query(MyLable).order_by(MyLable.reg_time.desc()).all()
-        return label
-    else:
-        return []
+    label = db.query(MyLable).join(User,MyLable.lable_id==id).order_by(MyLable.reg_time.desc()).all()
+    return label
 #添加用户标签
 def post_user_tag(db:Session,uid:int,label:str)->list:
     user=db.query(User).filter(User.id==uid).first()
