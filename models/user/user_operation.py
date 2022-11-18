@@ -1,10 +1,11 @@
 #数据库操作
 from sqlalchemy.orm import Session
 
+
 from fastapi.responses import JSONResponse
 import time
 import uuid
-from models.user.user_model import User,Dynamic
+from models.user.user_model import User,Dynamic,MyLable
 
 
 def create_uuid(name,time,pwd):
@@ -78,3 +79,35 @@ def user_update_data(db:Session,id:int,nickname:str='',avatar:str=''):
     db.commit()
     db.flush()
     return user
+#获取用户标签
+def get_user_tag(db:Session,id:int)->list:
+    user=db.query(User).filter(User.id==id).first()
+
+    if user:
+        label = db.query(MyLable).order_by(MyLable.reg_time.desc()).all()
+        return label
+    else:
+        return []
+#添加用户标签
+def post_user_tag(db:Session,uid:int,label:str)->list:
+    user=db.query(User).filter(User.id==uid).first()
+    if user:
+        create_time = int(time.time())
+        mylabel=MyLable(lable_id=uid,lable_name=label,reg_time=create_time,is_delete=0)
+        db.add(mylabel)
+        db.commit()
+        db.flush()
+        return mylabel
+    else:
+        return []
+#删除用户标签
+def delete_user_tag(db:Session,id:int):
+    try:
+        user, label = db.query(User, MyLable).join(User, MyLable.id == id).first()
+        if user:
+            db.delete(label)
+            db.commit()
+            db.flush()
+            return label
+    except Exception as e:
+        return ''

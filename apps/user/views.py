@@ -1,16 +1,17 @@
 from fastapi import APIRouter, FastAPI, Depends, File, UploadFile, Form
 from sqlalchemy.orm import Session
-from typing import Union,Optional
+from typing import Union,Optional,List
 from fastapi.security import OAuth2PasswordRequestForm
 from fastapi.responses import JSONResponse
 from datetime import datetime,timedelta
 from extend.get_db import get_db
-from models.user.user_operation import user_update_data,get_user_login_by_pwd,post_user_by_zc,get_user_by_id,get_user_by_dynamic,user_update_avter
+from models.user.user_operation import post_user_tag, get_user_tag, user_update_data, get_user_login_by_pwd, \
+    post_user_by_zc, get_user_by_id, get_user_by_dynamic, user_update_avter, delete_user_tag
 from utils.get_md5_data import get_md5_pwd
-from extend.status_code import status_code200,status_code6001,status_code6000,status_code6003,status_code6007,status_code6009
+from extend.status_code import status_code6006,status_code200,status_code6001,status_code6000,status_code6003,status_code6007,status_code6009
 from extend.const_Num import EXPIRE_TIME
 from models.user.user_model import User,Dynamic
-from models.user.user_ret_model import UserToekRet
+from models.user.user_ret_model import UserToekRet,UserMyLableRet
 from utils import token as createToken # for token
 
 users = APIRouter(
@@ -133,4 +134,72 @@ async def userSave(
         "code":200,
         "msg":"修改成功",
         "data": data_user,
+    }
+@users.post("/label",tags=["用户模块"],name="添加用户标签")
+async def plabel(
+                 labeldata:List[UserMyLableRet],
+                 db:Session=Depends(get_db))->list:
+    try:
+        for  index ,item in enumerate(labeldata):
+            if not item.id:
+                return {
+                    "code": status_code6007,
+                    "msg": f"第{index+1}个用户信息不正确",
+                }
+            if not item.lable_name:
+                return {
+                    "code": status_code6006,
+                    "msg": f"第{index+1}个标签名称不能为空",
+                }
+            data=post_user_tag(db, uid=item.id, label=item.lable_name)
+
+    except ArithmeticError:
+        return {
+            "code": status_code6006,
+            "msg": "添加失败",
+
+        }
+    return {
+        "code": status_code200,
+        "msg": "添加成功",
+    }
+@users.get("/label",tags=["用户模块"],name="获取用户标签")
+def glabel(
+        id:int,
+                 db:Session=Depends(get_db))->list:
+    try:
+        data=get_user_tag(db,id)
+    except ArithmeticError:
+        return {
+            "code": status_code6006,
+            "msg": "获取失败",
+
+        }
+    return {
+        "code":200,
+        "msg":"获取成功",
+        "data":data
+    }
+@users.delete("/label",tags=["用户模块"],name="删除用户标签")
+def dlabel(
+        id:int,
+                 db:Session=Depends(get_db)):
+    try:
+        data = delete_user_tag(db, id)
+        if (not data) or (data == ""):
+            return {
+                "code": status_code6006,
+                "msg": "删除失败",
+
+            }
+
+    except ArithmeticError as e:
+        return {
+            "code": status_code6006,
+            "msg": "删除失败",
+
+        }
+    return {
+        "code":200,
+        "msg":"删除成功",
     }

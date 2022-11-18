@@ -26,3 +26,12 @@ class Dynamic(Base):
     dynamic_id=Column(Integer,ForeignKey("users.id"))
     dyname_backref=relationship("User",backref = "stu2class")
     positioning = Column(String(255), nullable=False)
+class MyLable(Base):
+    __tablename__ = 'mylable'
+    id = Column(Integer, primary_key=True,autoincrement=True)
+    lable_name = Column(String(255),nullable=False)
+    lable_id=Column(Integer,ForeignKey("users.id"))
+    lable_backref=relationship("User",backref = "label2class")
+    #0 未删除 1 已删除
+    is_delete = Column(Integer, nullable=False,default=0)
+    reg_time = Column(Integer, nullable=False)
