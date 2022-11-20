@@ -1,5 +1,6 @@
 from fastapi import APIRouter, FastAPI, Depends, File, UploadFile, Form
 from starlette.responses import JSONResponse
+from typing import Union,Optional,List
 from extend.status_code import status_code6006,status_code200,status_code6001,status_code6000,status_code6003,status_code6007,status_code6009
 
 histiry = APIRouter(
@@ -46,3 +47,18 @@ async def get_histry():
         },
     ]
     return  JSONResponse(content={"code": status_code200, "msg": "获取成功", "list": histryList})
+
+
+@histiry.post("/upload",name="图片上传")
+async def upload(file:Optional[UploadFile]=File(None)):
+    _files=''
+    _files = 'uploads/histiry/' + file.filename
+    rep = await file.read()
+
+    with open(_files, 'wb') as f:
+        f.write(rep)
+    return {
+        "code":200,
+        "msg":"上传成功",
+        "data":_files
+    }
