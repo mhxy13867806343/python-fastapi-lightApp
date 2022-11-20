@@ -1,6 +1,4 @@
 from sqlalchemy import Column,Integer,String,ForeignKey
-
-8
 from sqlalchemy.orm import relationship
 from extend.db import Base,LOCSESSION,ENGIN
 
