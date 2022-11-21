@@ -4,7 +4,7 @@ from starlette.responses import JSONResponse
 from typing import Union,Optional,List
 from extend.status_code import status_code6010,status_code6006,status_code200,status_code6001,status_code6000,status_code6003,status_code6007,status_code6009
 from extend.get_db import get_db
-from models.dicts.dicts_operation import add_child_dict, add_dict,get_dict_list,get_dict_list_total
+from models.dicts.dicts_operation import get_dict_child_list,add_child_dict, add_dict,get_dict_list,get_dict_list_total
 from models.dicts.dicts_ret_model import DictsRet,DistListRet
 dicts = APIRouter(
     prefix="/dicts",
@@ -48,8 +48,13 @@ async def childAdd(dict:List[DistListRet],pid:int):
                     "code":status_code6006,
                     "msg":"父字典id不存在"
                 }
+            if data1==-2 or data1==-3:
+                return {
+                    "code":status_code6010,
+                    "msg":"子字典已存在"
+                }
     except Exception as e:
-        print(e,4444)
+        print(e,44444)
         return {
             "code":status_code6006,
             "msg":"添加失败"
@@ -58,14 +63,12 @@ async def childAdd(dict:List[DistListRet],pid:int):
         "code": status_code200,
         "msg":"添加成功",
     }
-    # dicts = add_child_dict(value,name,pid)
-    # if(dicts=="" or dicts is None):
-    #     return {
-    #         "code":status_code6010,
-    #         "msg":"字典已存在"
-    #     }
-    # return {
-    #     "code": status_code200,
-    #     "msg":"添加成功",
-    #     "data": keys,
-    # }
+@dicts.get("/childList",name="根据父字典id查询子字典")
+async def childList(keys:str='',db:Session=Depends(get_db)):
+    data=get_dict_child_list(db,keys)
+    print(data,2222)
+    return {
+        "code": status_code200,
+        "msg":"查询成功",
+        "data":data
+    }

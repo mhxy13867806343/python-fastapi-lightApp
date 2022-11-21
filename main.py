@@ -7,6 +7,7 @@ from apps.user.views import users as user_routerApi # for users
 from apps.home.views import home as home_routerApi # for users
 from apps.histiry.views import histiry as histiry_routerApi # for users
 from apps.dicts.views import dicts as dicts_routerApi # for users
+from apps.semail.views import emails as emails_routerApi # for users
 app = FastAPI(
     title="轻应用",
     description="轻应用 api",
@@ -16,6 +17,7 @@ app.include_router(user_routerApi)
 app.include_router(home_routerApi)
 app.include_router(histiry_routerApi)
 app.include_router(dicts_routerApi)
+app.include_router(emails_routerApi)
 
 # CORS
 app.add_middleware(
