@@ -12,6 +12,8 @@ class User(Base):
     user_id=Column(String(100),nullable=False)
     username = Column(String(255),nullable=False)
     password = Column(String(255),nullable=False)
+    pwdCount=Column(Integer,nullable=False,default=2)
+    pwdTime=Column(Integer,nullable=False)
     avatar = Column(String(255),nullable=False)
     nickname = Column(String(255),nullable=False)
     reg_time = Column(Integer,nullable=False)

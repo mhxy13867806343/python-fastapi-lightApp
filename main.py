@@ -1,5 +1,6 @@
 import uvicorn
-from fastapi import FastAPI,Depends
+from fastapi import FastAPI,Depends,Request
+from fastapi.responses import Response
 from fastapi.staticfiles import StaticFiles #静态文件操作
 from fastapi.middleware.cors import CORSMiddleware # CORS
 from extend.db import LOCSESSION,Base,ENGIN # for database
@@ -27,6 +28,11 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+# @app.middleware("http")
+# async def db_session_middleware(req: Request, call_next):
+#     response = await call_next(req)
+#     print("db_session_middleware",dir(req),444)
+#     return response
 # 静态文件
 app.mount('/uploads', StaticFiles(directory='uploads'), name='uploads')
 # 创建数据库

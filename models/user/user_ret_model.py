@@ -1,3 +1,4 @@
+
 from pydantic import BaseModel
 from typing import Optional
 import time
@@ -14,3 +15,6 @@ class  UserMyLableRet(BaseModel):
     id:Optional[int]
     lable_name:Optional[str]
     reg_time:Optional[int]=create_time
+
+class  UserMyUpPwdRet(BaseModel):
+    password:Optional[str]

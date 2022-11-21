@@ -1,4 +1,4 @@
-from fastapi import APIRouter, FastAPI, Depends, File, UploadFile, Form
+from fastapi import APIRouter, FastAPI, Depends, File, UploadFile, Form,Body
 from sqlalchemy.orm import Session
 from typing import Union,Optional,List
 from fastapi.security import OAuth2PasswordRequestForm
@@ -6,12 +6,12 @@ from fastapi.responses import JSONResponse
 from datetime import datetime,timedelta
 from extend.get_db import get_db
 from models.user.user_operation import post_user_tag, get_user_tag, user_update_data, get_user_login_by_pwd, \
-    post_user_by_zc, get_user_by_id, get_user_by_dynamic, user_update_avter, delete_user_tag
+    post_user_by_zc, get_user_by_id, get_user_by_dynamic, user_update_avter, delete_user_tag,post_user_pwd_update
 from utils.get_md5_data import get_md5_pwd
-from extend.status_code import status_code6006,status_code200,status_code6001,status_code6000,status_code6003,status_code6007,status_code6009
+from extend.status_code import status_code6011,status_code6006,status_code200,status_code6001,status_code6000,status_code6003,status_code6007,status_code6009
 from extend.const_Num import EXPIRE_TIME
 from models.user.user_model import User,Dynamic
-from models.user.user_ret_model import UserToekRet,UserMyLableRet
+from models.user.user_ret_model import UserToekRet,UserMyLableRet,UserMyUpPwdRet
 from utils import token as createToken # for token
 
 users = APIRouter(
@@ -52,6 +52,8 @@ def post_user_login(data:OAuth2PasswordRequestForm= Depends(),db:Session=Depends
         "avatar":user.avatar,
         "reg_time":user.reg_time,
         "nickname":user.nickname,
+        "pwdCount": user.pwdCount,
+        "pwdTime": user.pwdTime,
     }
     content = {"code": 200, "msg": "登录成功", "token": userToken,
                "data": data_user,
@@ -69,6 +71,8 @@ def get_user_by_token(id:User = Depends(createToken.pase_token),db:Session=Depen
             "avatar":user.avatar,
             "reg_time":user.reg_time,
             "nickname":user.nickname,
+            "pwdCount":user.pwdCount,
+            "pwdTime":user.pwdTime,
         }
         content = {"code": status_code200, "msg": "获取成功", "data": data_user,}
         return JSONResponse(content=content)
@@ -100,8 +104,9 @@ positioning:Optional[str]=Form('')
     }
 @users.post("/upload",tags=["用户模块"],name="上传头像")
 async def upload(avatar:Optional[UploadFile]=File(None),
-                 id:int=Form(...),
-                 db:Session=Depends(get_db)):
+                 db:Session=Depends(get_db),
+id:User = Depends(createToken.pase_token)
+                 ):
     _files=''
     if avatar:
         _files = 'uploads/users/' + avatar.filename
@@ -117,7 +122,7 @@ async def upload(avatar:Optional[UploadFile]=File(None),
     }
 @users.post("/userSave",tags=["用户模块"],name="用户信息保存")
 async def userSave(
-                 id:int=Form(...),
+        id: User = Depends(createToken.pase_token),
                  nickname:Optional[str]=Form(None),
         avatar:Optional[str]=Form(None),
                  db:Session=Depends(get_db)):
@@ -137,7 +142,9 @@ async def userSave(
     }
 @users.post("/label",tags=["用户模块"],name="添加用户标签")
 async def plabel(
+
                  labeldata:List[UserMyLableRet],
+        id: User = Depends(createToken.pase_token),
                  db:Session=Depends(get_db))->list:
     try:
         for  index ,item in enumerate(labeldata):
@@ -151,7 +158,7 @@ async def plabel(
                     "code": status_code6006,
                     "msg": f"第{index+1}个标签名称不能为空",
                 }
-            data=post_user_tag(db, uid=item.id, label=item.lable_name)
+            data=post_user_tag(db, uid=id, label=item.lable_name)
 
     except ArithmeticError:
         return {
@@ -165,7 +172,7 @@ async def plabel(
     }
 @users.get("/label",tags=["用户模块"],name="获取用户标签")
 def glabel(
-        id:int,
+        id:User= Depends(createToken.pase_token),
                  db:Session=Depends(get_db))->list:
     try:
         data=get_user_tag(db,id)
@@ -180,12 +187,28 @@ def glabel(
         "msg":"获取成功",
         "data":data
     }
+@users.post('/updatpwd',tags=["用户模块"],name="修改密码")
+def updatpwd(data:UserMyUpPwdRet,id:int=Depends(createToken.pase_token),db:Session=Depends(get_db)):
+    md5_pwd = get_md5_pwd(data.password)
+    data=post_user_pwd_update(db,id,md5_pwd)
+    if data==-1:
+        return {
+            "code": status_code6011,
+            "msg": "修改的密码与原密码一致,请更换新的密码",
+        }
+    if data:
+        return {
+            "code": status_code200,
+            "msg": "修改成功",
+        }
 @users.delete("/label",tags=["用户模块"],name="删除用户标签")
 def dlabel(
-        id:int,
+        id:int=0,
+        user_id:User=Depends(createToken.pase_token),
                  db:Session=Depends(get_db)):
     try:
-        data = delete_user_tag(db, id)
+        data = delete_user_tag(db,user_id, id)
+        print(data,7777)
         if (not data) or (data == ""):
             return {
                 "code": status_code6006,

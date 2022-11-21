@@ -1,4 +1,4 @@
-from typing import Union,Optional
-def f(a:str,b:Optional[int]=1):
-    print(a,b)
-f("a",3)
+start =1669045330
+import time
+print(int(time.time()))
+print(int(time.time())-start)

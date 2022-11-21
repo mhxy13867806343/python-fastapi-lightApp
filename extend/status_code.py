@@ -15,3 +15,4 @@ status_code6007= 6007 #未找到相关用户
 status_code6008= 6008 #未找到相关详情数据
 status_code6009= 6009 #添加数据时间过短
 status_code6010= 6010 #添加数据已存在
+status_code6011= 6011 #修改数据未通过
