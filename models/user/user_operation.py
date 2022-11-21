@@ -28,7 +28,9 @@ def post_user_by_zc(db:Session,username:str,password:str):
     if user is None:
         reg_time=int(time.time())
         user_number=create_uuid(username,reg_time,password)
+        user_id=password+str(reg_time)
         user=User(username=username,password=password,reg_time=reg_time,
+                  user_id=user_id,
                   user_number=user_number,avatar='',nickname=username
                   )
         db.add(user)
