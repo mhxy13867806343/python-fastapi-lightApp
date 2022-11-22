@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session
 from fastapi.responses import JSONResponse
 import time
 import uuid
+from extend.redis_db import dbRedis_del
 from models.user.user_model import User,Dynamic,MyLable
 from extend.dataReturn import intReturn_1,intReturn_2
 
@@ -129,3 +130,15 @@ def post_user_pwd_update(db:Session,id:int,password:str):
         return user
     except Exception as e:
         return ''
+#退出登录
+def post_user_login_out(db:Session,id:int):
+    try:
+        user=db.query(User).filter(User.id==id).first()
+
+        if user:
+            dbRedis_del(key="user",vname=user.username)
+            return user
+        return intReturn_1
+    except Exception as e:
+        print(e,444444444)
+        return intReturn_1
