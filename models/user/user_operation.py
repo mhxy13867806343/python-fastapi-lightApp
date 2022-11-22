@@ -6,7 +6,7 @@ import uuid
 from extend.redis_db import dbRedis_del
 from models.user.user_model import User,Dynamic,MyLable
 from extend.dataReturn import intReturn_1,intReturn_2
-
+from extend.redis_cache import create_redis_time
 def create_uuid(name,time,pwd):
     data="{}{}{}".format(name,time,pwd)
     d=uuid.uuid5(uuid.NAMESPACE_DNS, data)
@@ -119,10 +119,10 @@ def post_user_pwd_update(db:Session,id:int,password:str):
             return intReturn_1
         if user.pwdCount==0:
             return intReturn_2
-        user=db.query(User).filter(User.id == id).update(
+        userb=db.query(User).filter(User.id == id).update(
             {User.password: password,
              User.pwdCount: user.pwdCount-1,
-             User.pwdTime: int(time.time())
+             User.pwdTime: create_redis_time(-1)
              }
         )
         db.commit()
@@ -140,5 +140,20 @@ def post_user_login_out(db:Session,id:int):
             return user
         return intReturn_1
     except Exception as e:
-        print(e,444444444)
+        return intReturn_1
+def post_user_pwd_Count(db:Session,id:int):
+    try:
+        user = db.query(User).filter(User.id == id).first()
+
+        if user:
+            db.query(User).filter(User.id == id).update({
+                User.pwdCount:2,
+                User.pwdTime:0
+            })
+            db.commit()
+            db.flush()
+            return user
+        return intReturn_1
+    except Exception as e:
+        print(e,5555)
         return intReturn_1

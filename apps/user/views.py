@@ -8,7 +8,7 @@ from datetime import datetime, timedelta
 from extend.get_db import get_db
 from models.user.user_operation import post_user_tag, get_user_tag, user_update_data, get_user_login_by_pwd, \
     post_user_by_zc, get_user_by_id, get_user_by_dynamic, user_update_avter, delete_user_tag, post_user_pwd_update, \
-    post_user_login_out
+    post_user_login_out,post_user_pwd_Count
 from utils.get_md5_data import get_md5_pwd
 from extend.status_code import status_code6011, status_code6006, status_code200, status_code6001, status_code6000, \
     status_code6003, status_code6007, status_code6009
@@ -17,6 +17,7 @@ from models.user.user_model import User, Dynamic
 from models.user.user_ret_model import UserToekRet, UserMyLableRet, UserMyUpPwdRet
 from utils import token as createToken  # for token
 from extend.redis_db import dbRedis_get,dbRedis_set
+from extend.redis_cache import create_redis_time
 users = APIRouter(
     prefix="/users",
     tags=["用户模块"],
@@ -62,23 +63,63 @@ def post_user_login(data: OAuth2PasswordRequestForm = Depends(), db: Session = D
         "pwdCount": user.pwdCount,
         "pwdTime": user.pwdTime,
     }
+    dbRedis_set('user', user.username, data=str(data_user))
     content = {"code": 200, "msg": "登录成功", "token": userToken,
                "data": data_user,
                }
     return JSONResponse(content=content)
 
-
+def jSONRRedisUser(user,type='ext'):
+    data_user = {
+        "id": user.id,
+        "username": user.username,
+        "avatar": user.avatar,
+        "reg_time": user.reg_time,
+        "nickname": user.nickname,
+        "pwdCount": user.pwdCount,
+        "pwdTime": user.pwdTime,
+    }
+    if(type=='ext'):
+        dbRedis_set('user', user.username, data=str(data_user))
+    return JSONResponse(content={"code": 200, "msg": "获取成功", "data": data_user})
+def jSONRRedisUserPwdgt(pwdgt):
+    data_user = {
+        "id": pwdgt.get('id'),
+        "username": pwdgt.get('username'),
+        "avatar": pwdgt.get('avatar'),
+        "reg_time": pwdgt.get('reg_time'),
+        "nickname": pwdgt.get('nickname'),
+        "pwdCount": pwdgt.get('pwdCount'),
+        "pwdTime": pwdgt.get('pwdTime'),
+    }
+    return JSONResponse(content={"code": 200, "msg": "获取成功", "data": data_user})
 # 根据用户token去获取用户信息
 @users.post('/token', tags=["用户模块"], name="根据token获取用户信息")
 def get_user_by_token(id: User = Depends(createToken.pase_token), db: Session = Depends(get_db)):
-
-
     user=get_user_by_id(db, id)
-    data_user = dbRedis_get(key="user",vname=user.username,name="data")
-    if None in data_user:
-        return get_user_bys_by_token(db, id)
+    gt = dbRedis_get(vname=user.username)
+    if not gt:
+        print('redis中没有数据')
+        return jSONRRedisUser(user,'')
+    pwdgt = eval(gt)
+    pwdTime = pwdgt.get('pwdTime')
+    ctime=create_redis_time()
+    print('redis中有数据',ctime,pwdTime)
+    print('redis中有数据',ctime-pwdTime)
+    print('redis中有数据',(ctime-pwdTime)>0)
+    if(pwdgt.get('pwdCount')==0):
+        print('redis中有数据,密码过期')
+        if(ctime-pwdTime)>=0:
+            print('redis中有数据,但是密码已经过期')
+            post_user_pwd_Count(db, user.id)
+
+            return jSONRRedisUser(user,'ext')
+        else:
+            print('redis中有数据,密码没有过期1111')
+            return jSONRRedisUserPwdgt(pwdgt)
     else:
-        return JSONResponse(content={"code": 200, "msg": "获取成功", "data":eval(data_user[0])})
+        print('redis中有数据,密码没有过期2222')
+        return jSONRRedisUser(user,'')
 def get_user_bys_by_token(db,id):
     user = get_user_by_id(db, id)
     if user:
@@ -92,10 +133,6 @@ def get_user_bys_by_token(db,id):
             "pwdTime": user.pwdTime,
         }
         content = {"code": status_code200, "msg": "获取成功", "data": data_user, }
-        userSet={
-            "data":str(data_user) ,
-        }
-        dbRedis_set('user',user.username,userSet)
         return JSONResponse(content=content)
     content = {
         "msg": "用户信息未找到",
@@ -223,15 +260,28 @@ def glabel(
 def updatpwd(data: UserMyUpPwdRet, id: int = Depends(createToken.pase_token), db: Session = Depends(get_db)):
     md5_pwd = get_md5_pwd(data.password)
     data = post_user_pwd_update(db, id, md5_pwd)
+
     if data == -1:
         return {
             "code": status_code6011,
             "msg": "修改的密码与原密码一致,请更换新的密码",
         }
     if data:
+        data_user = {
+            "id": data.id,
+            "username": data.username,
+            "avatar": data.avatar,
+            "reg_time": data.reg_time,
+            "nickname": data.nickname,
+            "pwdCount": data.pwdCount,
+            "pwdTime": data.pwdTime,
+
+        }
+        dbRedis_set('user', data.username, data=str(data_user))
         return {
             "code": status_code200,
             "msg": "修改成功",
+            "data": data
         }
 
 
