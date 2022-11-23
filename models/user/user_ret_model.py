@@ -18,3 +18,6 @@ class  UserMyLableRet(BaseModel):
 
 class  UserMyUpPwdRet(BaseModel):
     password:Optional[str]
+class UserMySignature(BaseModel):
+    user_id:Optional[int]
+    signature:Optional[str]=''

@@ -8,13 +8,13 @@ from datetime import datetime, timedelta
 from extend.get_db import get_db
 from models.user.user_operation import post_user_tag, get_user_tag, user_update_data, get_user_login_by_pwd, \
     post_user_by_zc, get_user_by_id, get_user_by_dynamic, user_update_avter, delete_user_tag, post_user_pwd_update, \
-    post_user_login_out,post_user_pwd_Count
+    post_user_login_out,post_user_pwd_Count,post_add_user_signature,get_user_signature,post_update_user_signature
 from utils.get_md5_data import get_md5_pwd
 from extend.status_code import status_code6011, status_code6006, status_code200, status_code6001, status_code6000, \
     status_code6003, status_code6007, status_code6009
 from extend.const_Num import EXPIRE_TIME
 from models.user.user_model import User, Dynamic
-from models.user.user_ret_model import UserToekRet, UserMyLableRet, UserMyUpPwdRet
+from models.user.user_ret_model import UserToekRet, UserMyLableRet, UserMyUpPwdRet,UserMySignature
 from utils import token as createToken  # for token
 from extend.redis_db import dbRedis_get,dbRedis_set
 from extend.redis_cache import create_redis_time
@@ -325,4 +325,39 @@ def logut(
     return {
         "code": status_code200,
         "msg": "退出成功",
+    }
+@users.post("/getsignature", tags=["用户模块"], name="获取用户签名")
+def getSignature(user_id: User = Depends(createToken.pase_token), db: Session = Depends(get_db)):
+    signature=get_user_signature(db,user_id)
+    return {
+        "code": status_code200,
+        "msg": "获取成功",
+        "data": signature
+    }
+@users.post("/signature", tags=["用户模块"], name="新增用户签名")
+def postSignature(data:UserMySignature,user_id: User = Depends(createToken.pase_token), db: Session = Depends(get_db)):
+    signature=post_add_user_signature(db,user_id,data.signature)
+    if signature==0:
+        return {
+            "code": status_code6006,
+            "msg": "签名内容一致,无法修改",
+
+        }
+    if signature==-1:
+        return {
+            "code": status_code200,
+            "msg": "添加成功",
+        }
+    return {
+        "code": status_code200,
+        "msg": "修改成功",
+    }
+
+#此接口为测试接口暂时不使用
+@users.put("/signature", tags=["用户模块"], name="修改用户签名")
+def postSignature(data:UserMySignature,user_id: User = Depends(createToken.pase_token), db: Session = Depends(get_db)):
+    # signature=post_update_user_signature(db,user_id,data.signature)
+    return {
+        "code": status_code200,
+        "msg": "修改成功",
     }

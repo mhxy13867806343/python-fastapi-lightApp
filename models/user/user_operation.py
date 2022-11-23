@@ -1,10 +1,11 @@
 #数据库操作
+from sqlalchemy import func
 from sqlalchemy.orm import Session
 from fastapi.responses import JSONResponse
 import time
 import uuid
 from extend.redis_db import dbRedis_del
-from models.user.user_model import User,Dynamic,MyLable
+from models.user.user_model import User,Dynamic,MyLable,Signature
 from extend.dataReturn import intReturn_1,intReturn_2
 from extend.redis_cache import create_redis_time
 def create_uuid(name,time,pwd):
@@ -130,6 +131,47 @@ def post_user_pwd_update(db:Session,id:int,password:str):
         return user
     except Exception as e:
         return ''
+#用户添加签名
+def post_add_user_signature(db:Session,uid:int,signature:str=''):
+    try:
+        user=db.query(Signature).join(User).filter(User.id == Signature.user_id).filter(User.id == uid).first()
+        if user:
+            if(user.create_time>0):
+                print('已经添加过签名')
+                user=db.query(Signature).filter(User.id == Signature.user_id,Signature.signature!=signature).update(
+                    {Signature.signature: signature },synchronize_session=False
+                )
+                db.commit()
+                db.flush()
+                return user
+        else:
+            print('没有添加过签名')
+            signature1=Signature(user_id=uid,signature=signature,create_time=int(time.time()))
+            db.add(signature1)
+            db.commit()
+            db.flush()
+            return -1
+    except Exception as e:
+        print(e,4444444)
+        pass
+#获取用户签名
+def get_user_signature(db:Session,uid:int):
+    try:
+        user = db.query(Signature).join(User).filter(User.id==Signature.user_id).filter(User.id==uid).first()
+        return user
+    except Exception as e:
+        pass
+#修改用户签名
+def post_update_user_signature(db:Session,uid:int):
+    try:
+        user = db.query(Signature).join(User).filter(User.id==Signature.user_id).filter(User.id==uid).first()
+        db.update(user)
+        db.commit()
+        db.flush()
+    except Exception as e:
+        pass
+
+
 #退出登录
 def post_user_login_out(db:Session,id:int):
     try:

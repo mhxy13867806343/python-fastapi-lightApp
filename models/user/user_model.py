@@ -18,7 +18,13 @@ class User(Base):
     nickname = Column(String(255),nullable=False)
     reg_time = Column(Integer,nullable=False)
 
-
+class Signature(Base):
+    __tablename__ = 'signature'
+    id = Column(Integer, primary_key=True,autoincrement=True)
+    user_id=Column(Integer,ForeignKey('users.id'))
+    signature=Column(String(255),nullable=False)
+    signature_backref = relationship("User", backref="signature2class")
+    create_time=Column(Integer,nullable=False)
 class Dynamic(Base):
     __tablename__ = 'dynamic'
     id = Column(Integer, primary_key=True,autoincrement=True)
