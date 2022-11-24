@@ -1,8 +1,10 @@
 from fastapi import APIRouter, FastAPI, Depends, File, UploadFile, Form
 from starlette.responses import JSONResponse
 from typing import Union,Optional,List
+import requests
+import time
 from extend.status_code import status_code6006,status_code200,status_code6001,status_code6000,status_code6003,status_code6007,status_code6009
-
+from extend.const_Num import API_KEY
 histiry = APIRouter(
     prefix="/histry",
     tags=["版本管理"]
@@ -61,4 +63,21 @@ async def upload(file:Optional[UploadFile]=File(None)):
         "code":200,
         "msg":"上传成功",
         "data":_files
+    }
+@histiry.get("/soupfapig",name="免费第三方接口")
+def add_histry():
+    url=f"https://apis.juhe.cn/fapig/soup/query?key={API_KEY}"
+    data=requests.get(url)
+    print(data.json())
+    datas=data.json()
+    if(datas['error_code']!=0):
+        return {
+            "code": datas['error_code'],
+            "msg": datas['reason'],
+            "data": ""
+        }
+    return {
+        "code":200,
+        "msg":"新增成功",
+        "data":datas
     }
