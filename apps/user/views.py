@@ -8,13 +8,13 @@ from datetime import datetime, timedelta
 from extend.get_db import get_db
 from models.user.user_operation import post_user_tag, get_user_tag, user_update_data, get_user_login_by_pwd, \
     post_user_by_zc, get_user_by_id, get_user_by_dynamic, user_update_avter, delete_user_tag, post_user_pwd_update, \
-    post_user_login_out,post_user_pwd_Count,post_add_user_signature,get_user_signature,post_update_user_signature
+    get_user_points_time,post_user_login_out,post_user_pwd_Count,post_add_user_signature,get_user_signature,get_user_points,post_user_points
 from utils.get_md5_data import get_md5_pwd
 from extend.status_code import status_code6011, status_code6006, status_code200, status_code6001, status_code6000, \
     status_code6003, status_code6007, status_code6009
 from extend.const_Num import EXPIRE_TIME
 from models.user.user_model import User, Dynamic
-from models.user.user_ret_model import UserToekRet, UserMyLableRet, UserMyUpPwdRet,UserMySignature
+from models.user.user_ret_model import UserToekRet, UserMyLableRet, UserMyUpPwdRet,UserMySignature,UserPointsRet
 from utils import token as createToken  # for token
 from extend.redis_db import dbRedis_get,dbRedis_set
 from extend.redis_cache import create_redis_time
@@ -22,6 +22,28 @@ users = APIRouter(
     prefix="/users",
     tags=["用户模块"],
 )
+@users.post("/point", summary="用户签到")
+async def user_points(user_id: User = Depends(createToken.pase_token),db: Session = Depends(get_db)):
+    pot=post_user_points(db, user_id)
+    if pot==-99:
+        return {
+            "code": status_code6009,
+            "msg": "今日已签到",
+        }
+    return {
+        "code": status_code200,
+        "msg": "签到成功",
+    }
+@users.get("/point", name='获取用户积分')
+def get_user_points1(user_id: User = Depends(createToken.pase_token),db: Session = Depends(get_db)):
+    datas=get_user_points(db,user_id)
+    lappend=get_user_points_time(db,user_id)
+    datas['potinList']=lappend
+    return {
+        "code": status_code200,
+        "msg": "获取成功",
+        "data": datas,
+    }
 
 
 @users.post("/register", tags=["用户模块"], name='注册')
