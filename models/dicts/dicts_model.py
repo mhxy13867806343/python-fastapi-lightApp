@@ -15,3 +15,14 @@ class DictsDict(Base):
     key_name = Column(String(255),nullable=False)
     dict_id = Column(Integer, ForeignKey('dicts.id'), nullable=False)
     dict_backref = relationship("Dicts", backref="dicts2class")
+class CrawlerHot(Base):
+    __tablename__ = 'new_hot'
+    hot_id = Column(Integer, primary_key=True,autoincrement=True)
+    hot_cid = Column(String(100),nullable=False,default='')
+    hot_time = Column(String(100),nullable=False,default='')
+    hot_type=Column(String(100),nullable=False,default='')
+    hot_name=Column(String(100),nullable=False,default='')
+    hot_count=Column(String(100),nullable=False,default='')
+    hot_url=Column(String(255),nullable=False,default='')
+    dict_id = Column(Integer, ForeignKey('dicts_dict.id'), nullable=False)
+    dict_backref = relationship("DictsDict", backref="hot2class")

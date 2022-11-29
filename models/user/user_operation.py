@@ -5,9 +5,9 @@ from fastapi.responses import JSONResponse
 import time
 import uuid
 from extend.redis_db import dbRedis_del
-from models.user.user_model import User,Dynamic,MyLable,Signature,UserPoints
-from extend.dataReturn import intReturn_1,intReturn_2,intReturn_99
-from extend.redis_cache import create_redis_time,is_today
+from models.user.user_model import User,Dynamic,MyLable,Signature
+from extend.dataReturn import intReturn_1,intReturn_2
+from extend.redis_cache import create_redis_time
 def create_uuid(name,time,pwd):
     data="{}{}{}".format(name,time,pwd)
     d=uuid.uuid5(uuid.NAMESPACE_DNS, data)
@@ -197,82 +197,7 @@ def post_user_pwd_Count(db:Session,id:int):
         return intReturn_1
     except Exception:
         return intReturn_1
-#获取用户是否签到
-def get_user_points(db:Session,id:int=0):
-    points = db.query(UserPoints).join(User).filter(User.id == id).filter(UserPoints.user_id == id).first()
-    if(points):
-        return {
-            "id": points.id,
-            "user_id": points.user_id,
-            "points": points.user_points,
-            "is_check": points.is_Check,
-            "check_time": points.check_time,
-            "check_in_days": points.check_In_Days,
-            "now_days": points.now_days,
-            "potinList":[]
-        }
-    return {
-        "user_id": id,
-        "points": 0,
-        "is_check": 0,
-        "check_time": 0,
-        "check_in_days":0,
-        "now_days": 0,
-        "potinList":[]
-    }
-#根据用户签到获取此用户所有签到时间
-def get_user_points_time(db:Session,id:int=0)->list:
-    user=db.query(User).filter(User.id==id).first()
-    if user:
-        points = db.query(UserPoints).filter(UserPoints.user_id == user.id).all()
-        return [t for t in points]
 
-#用户签到
-def post_user_points(db:Session,id:int):
 
-    try:
-        check_time = int(time.time())
-        _points = db.query(UserPoints).join(User).filter(User.id == id).filter(UserPoints.user_id == id).first()
-        #没有签到过的时候
-        if not _points:
-            if is_today(check_time):
-                if ((User.id==id)and(UserPoints.is_Check>0)):
-                    return intReturn_99
-                user_points = UserPoints(user_id=id, user_points=1, is_Check=1, check_time=check_time, check_In_Days=1, now_days=1)
-                db.add(user_points)
-                db.commit()
-                db.flush()
-            return user_points
-        else:
-            _points = db.query(UserPoints).filter(UserPoints.user_id == id).all()
-            _pointsCheck = _points[-2].is_Check
-            print(_points,'_points',_pointsCheck,'_pointsCheck')
-            if  _pointsCheck==0:
-                print('连续签到')
-                user_points = UserPoints(user_id=id, user_points=UserPoints.user_points, is_Check=0, check_time=check_time, check_In_Days=0,
-                                         now_days=0)
-                db.add(user_points)
-                db.commit()
-                db.flush()
-            else:
-                print('已经签到过了','累计')
-                upotin=UserPoints.user_points
-                if (1+UserPoints.check_In_Days)==1:
-                    upotin+=10
-                elif (1+UserPoints.check_In_Days)==2:
-                    upotin+=20
-                elif (1+UserPoints.check_In_Days)==3:
-                    upotin+=30
-                elif (1+UserPoints.check_In_Days)==4:
-                    upotin+=40
-                elif (1+UserPoints.check_In_Days)>=5:
-                    upotin+=50
 
-                user_points = UserPoints(user_id=id, user_points=upotin, is_Check=1, check_time=check_time, check_In_Days=1+UserPoints.check_In_Days,
-                                         now_days=UserPoints.now_days + 1)
-                db.add(user_points)
-                db.commit()
-                db.flush()
 
-    except Exception as e:
-        return intReturn_1

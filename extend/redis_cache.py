@@ -44,8 +44,6 @@ def update_is_checked(aa):
     if(p0==p1):
         tb=True
     return tb
-
-print(update_is_checked('2022-11-15'))
 def create_redis_time(dv=1,days=30):
     tomorrow = date.today() + timedelta(days=days)
 
