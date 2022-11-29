@@ -2,11 +2,33 @@ from sqlalchemy.orm import Session,sessionmaker
 from fastapi import APIRouter, FastAPI, Depends, File, UploadFile, Form
 import requests
 import time
+import schedule
 from pyquery import PyQuery as pq
 import threading
 from extend.db import ENGIN
 from models.dicts.dicts_model import CrawlerHot,DictsDict
 LOCSESSION=sessionmaker(bind=ENGIN)
+class MyHotThread(threading.Thread):
+    def __init__(self,type:str='juejin'):
+        super(MyHotThread, self).__init__()
+        self.type=type or 'juejin'
+    def run(self):
+        type=self.type
+        _db=LOCSESSION()
+        if type=='juejin':
+            downJuejin(_db,type)
+        elif type=='zhihu':
+            pass
+        elif type=='baidu':
+            pass
+        elif type=='weixin':
+            pass
+        elif type=='weibo':
+            pass
+        elif type=='163':
+            pass
+        else:
+            print('暂无任务要操作')
 def downJuejin(db:Session,type:str='juejin'):
     itemidl=[]
     hrefl=[]
@@ -61,27 +83,29 @@ def downJuejin(db:Session,type:str='juejin'):
             db.commit()
             db.flush()
 
-class MyHotThread(threading.Thread):
-    def __init__(self,type:str='juejin'):
-        super(MyHotThread, self).__init__()
-        self.type=type or 'juejin'
-    def run(self):
-        type=self.type
-        _db=LOCSESSION()
-        if type=='juejin':
-            downJuejin(_db,type)
-        elif type=='zhihu':
-            pass
-        elif type=='baidu':
-            pass
-        elif type=='weixin':
-            pass
-        elif type=='weibo':
-            pass
-        elif type=='163':
-            pass
-        else:
-            print('暂无任务要操作')
-if __name__ == '__main__':
-    thread = MyHotThread('juejin')
+
+def main(type:str='juejin'):
+    print('开始获取时间为:',time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()))
+    thread = MyHotThread(type)
     thread.start()
+    print('结束获取时间为:', time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()))
+def crawlerJob(type:str='juejin',num=3,sl=9):
+    print('定时获取')
+    print('获取数据类型',type)
+    print('开始获取时间为:',time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()))
+    print(f'每次获取{num}时间的数据')
+    print(f'每次获取间隔{sl}秒')
+    schedule.every(num).hours.do(main, type=type)
+    n=0
+    while True:
+        n += 1
+        print(f'离定时任务开始还有{(num * 60 * 60) - (n-1+sl)}秒')
+        print(f'正在从{type}中获取数据...')
+        time.sleep(1)
+        print(f'第{n}次获取')
+        schedule.run_pending()
+        time.sleep(sl)
+
+
+if __name__ == '__main__':
+    crawlerJob()
