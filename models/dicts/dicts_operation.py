@@ -2,7 +2,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy import and_, or_,exists,not_
 
 from extend.db import LOCSESSION,Base,ENGIN # for database
-from models.dicts.dicts_model import Dicts,DictsDict
+from models.dicts.dicts_model import Dicts,DictsDict,CrawlerHot
 from models.dicts.dicts_ret_model import DictsRet
 session = LOCSESSION()
 #添加字典
@@ -45,3 +45,9 @@ def get_dict_child_list(db:Session,keys:str='')->[DictsDict]:
         dicts = db.query(DictsDict).filter(DictsDict.dict_id==all_Dict.id).all()
         return dicts
     return []
+def get_dict_hot_list(db:Session,type:str='all')->[CrawlerHot]:
+    if type=='' or type=='all':
+        dicts = db.query(CrawlerHot).all()
+        return dicts
+    all_Dict = db.query(CrawlerHot).filter(CrawlerHot.hot_type==type).all()
+    return all_Dict
