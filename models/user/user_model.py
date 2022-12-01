@@ -58,3 +58,14 @@ class UserPointsTool(Base):
     id = Column(Integer, primary_key=True,autoincrement=True)
     day=Column(Integer,nullable=False,default=1) #第几天
     lv_points=Column(Integer,nullable=False,default=1) #积分
+#朋友圈操作
+class CircleOperation(Base):
+    __tablename__ = 'circle_operation'
+    c_id = Column(Integer, primary_key=True,autoincrement=True)
+    c_file_name = Column(String(255),nullable=False)#朋友圈文件(可能是列表)
+    c_content = Column(String(255),nullable=False,default='')#朋友圈内容
+    c_public_type = Column(Integer,nullable=False,default=0) #0 公开 1 私密
+    c_user_id=Column(Integer, ForeignKey('users.id'))#谁发的
+    c_lable_backref = relationship("User", backref="circle2class")
+    c_create_time = Column(Integer, nullable=False)#创建时间
+    c_delete_is = Column(Integer, nullable=False,default=0) #0 未删除 1 已删除

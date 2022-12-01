@@ -50,20 +50,6 @@ async def get_histry():
     ]
     return  JSONResponse(content={"code": status_code200, "msg": "获取成功", "list": histryList})
 
-
-@histiry.post("/upload",name="图片上传")
-async def upload(file:Optional[UploadFile]=File(None)):
-    _files=''
-    _files = 'uploads/histiry/' + file.filename
-    rep = await file.read()
-
-    with open(_files, 'wb') as f:
-        f.write(rep)
-    return {
-        "code":200,
-        "msg":"上传成功",
-        "data":_files
-    }
 @histiry.get("/soupfapig",name="免费第三方接口")
 def add_histry():
     url=f"https://apis.juhe.cn/fapig/soup/query?key={API_KEY}"

@@ -167,14 +167,30 @@ def postSendpublish(id: User = Depends(createToken.pase_token), db: Session = De
 
 
 @users.post("/upload", tags=["用户模块"], name="上传头像")
-async def upload(avatar: Optional[UploadFile] = File(None),
+async def upload(file: Optional[UploadFile] = File(None),
+                 type:str='',
                  db: Session = Depends(get_db),
-                 id: User = Depends(createToken.pase_token)
                  ):
+    if file and type=='token':
+        await usertokenUpad(db,file)
+    else:
+        _files = ''
+        _files = 'uploads/histiry/' + file.filename
+        rep = await file.read()
+
+        with open(_files, 'wb') as f:
+            f.write(rep)
+        return {
+            "code": 200,
+            "msg": "上传成功",
+            "data": _files
+        }
+
+async def usertokenUpad(db,file,id: Optional[User] = Depends(createToken.pase_token)):
     _files = ''
-    if avatar:
-        _files = 'uploads/users/' + avatar.filename
-        rep = await avatar.read()
+    if file:
+        _files = 'uploads/users/' + file.filename
+        rep = await file.read()
 
         with open(_files, 'wb') as f:
             f.write(rep)
@@ -184,8 +200,6 @@ async def upload(avatar: Optional[UploadFile] = File(None),
         "msg": "修改成功",
         "data": _files
     }
-
-
 @users.post("/userSave", tags=["用户模块"], name="用户信息保存")
 async def userSave(
         id: User = Depends(createToken.pase_token),

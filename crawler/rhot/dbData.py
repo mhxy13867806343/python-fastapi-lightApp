@@ -138,13 +138,13 @@ def main(type:str='juejin'):
     thread = MyHotThread(type)
     thread.start()
     print('结束获取时间为:', time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()))
-def crawlerJob(type:str='juejin',num=3,sl=9):
+def crawlerJob(type:str='juejin',num=24,sl=1):
     print('定时获取')
     print('获取数据类型',type)
     print('开始获取时间为:',time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()))
     print(f'每次获取{num}时间的数据')
     print(f'每次获取间隔{sl}秒')
-    schedule.every(num).seconds.do(main, type=type)
+    schedule.every(num).hours.do(main, type=type)
     n=0
     while True:
         n += 1
@@ -156,4 +156,6 @@ def crawlerJob(type:str='juejin',num=3,sl=9):
 
 
 if __name__ == '__main__':
+    crawlerJob('juejin')
+    crawlerJob('zhihu')
     crawlerJob('baidu')
