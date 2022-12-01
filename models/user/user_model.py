@@ -1,4 +1,4 @@
-from sqlalchemy import Column,Integer,String,ForeignKey
+from sqlalchemy import Column,Integer,String,ForeignKey,TEXT
 
 8
 from sqlalchemy.orm import relationship
@@ -69,3 +69,9 @@ class CircleOperation(Base):
     c_lable_backref = relationship("User", backref="circle2class")
     c_create_time = Column(Integer, nullable=False)#创建时间
     c_delete_is = Column(Integer, nullable=False,default=0) #0 未删除 1 已删除
+class UserUpImages(Base):
+    __tablename__ = 'user_uploadImage'
+    p_id = Column(Integer, primary_key=True,autoincrement=True)
+    p_user_id = Column(Integer, ForeignKey('users.id'))
+    p_images=Column(String(255),nullable=False)
+    p_lable_backref = relationship("User", backref="cuseupload2class")

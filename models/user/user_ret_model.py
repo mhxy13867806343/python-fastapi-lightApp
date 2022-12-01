@@ -1,4 +1,4 @@
-
+from fastapi import APIRouter, FastAPI, Depends, File, UploadFile, Form, Body
 from pydantic import BaseModel
 from typing import Optional
 import time
@@ -28,3 +28,5 @@ class UserPointsRet(BaseModel):
     is_Check:Optional[int]=0  # 是否签到 0未签到 1已签到
     check_time:Optional[int]=0 # 签到时间
     check_In_Days:Optional[int]=0 # 连续签到天数
+class UserMyUpAvatarRet(BaseModel):
+    type: Optional[str] = None

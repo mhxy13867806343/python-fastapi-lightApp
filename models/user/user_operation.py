@@ -5,7 +5,7 @@ from fastapi.responses import JSONResponse
 import time
 import uuid
 from extend.redis_db import dbRedis_del
-from models.user.user_model import User,Dynamic,MyLable,Signature
+from models.user.user_model import User,Dynamic,MyLable,Signature,UserUpImages
 from extend.dataReturn import intReturn_1,intReturn_2
 from extend.redis_cache import create_redis_time
 def create_uuid(name,time,pwd):
@@ -199,5 +199,25 @@ def post_user_pwd_Count(db:Session,id:int):
         return intReturn_1
 
 
-
+#获取用户上传的图片
+def get_user_uploads_my(db:Session,id:int):
+    try:
+        user=db.query(User).filter(User.id==id).first()
+        if user:
+            imgList=db.query(UserUpImages).join(User).filter(UserUpImages.p_user_id==user.id).first()
+            if imgList:
+                return imgList
+    except Exception as e:
+        print(e)
+        return intReturn_1
+#保存用户上传图片
+def post_user_uploads_my(db:Session,uid:int,fileList:list)->list:
+    try:
+        dbs = UserUpImages(p_user_id=uid, p_images=fileList)
+        db.add(dbs)
+        db.commit()
+        db.flush()
+        return dbs
+    except Exception as e:
+        return intReturn_1
 

@@ -48,12 +48,15 @@ async def add_process_time_header(request: Request, call_next):
 
     login_url = str(request.url)[22:]
     #print(login_url,'查看')
-    token_url=['home/list','users/upload','users/login','users/register','histry/soupfapig','docs','openapi.json',
+    token_url=['dicts/list','home/list','histry/upload','users/login','users/register','histry/soupfapig','docs','openapi.json',
                'emails/send']
     user_uploadImg=['.jpg','.png','.gif','.jpeg','webp']
-    print(login_url, '不需要token', 3333)
-    if login_url in token_url:  # 屏蔽注册、登录接口, 避免死循环
+    if (login_url in token_url):  # 屏蔽注册、登录接口, 避免死循环
         return response
+    if login_url.find('?')!=-1:
+        spilt= login_url.split('?')[0]
+        if spilt in token_url:
+            return response
     for i in user_uploadImg:
         if login_url.endswith(i):
             return response

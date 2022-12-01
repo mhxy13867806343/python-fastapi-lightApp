@@ -8,17 +8,17 @@ from datetime import datetime, timedelta
 from extend.get_db import get_db
 from models.user.user_operation import post_user_tag, get_user_tag, user_update_data, get_user_login_by_pwd, \
     post_user_by_zc, get_user_by_id, get_user_by_dynamic, user_update_avter, delete_user_tag, post_user_pwd_update, \
-post_user_login_out,post_user_pwd_Count,post_add_user_signature,get_user_signature
+post_user_login_out,post_user_pwd_Count,post_add_user_signature,get_user_signature,post_user_uploads_my,get_user_uploads_my
 from utils.get_md5_data import get_md5_pwd
 from extend.status_code import status_code6011, status_code6006, status_code200, status_code6001, status_code6000, \
     status_code6003, status_code6007, status_code6009
 from extend.const_Num import EXPIRE_TIME
 from models.user.user_model import User, Dynamic
-from models.user.user_ret_model import UserToekRet, UserMyLableRet, UserMyUpPwdRet,UserMySignature,UserPointsRet
+from models.user.user_ret_model import UserToekRet, UserMyLableRet, UserMyUpPwdRet,UserMySignature,UserPointsRet,UserMyUpAvatarRet
 from utils import token as createToken  # for token
 from extend.redis_db import dbRedis_get,dbRedis_set
 from extend.redis_cache import create_redis_time
-
+from utils.tools import osFilePathIsdir
 users = APIRouter(
     prefix="/users",
     tags=["用户模块"],
@@ -168,37 +168,49 @@ def postSendpublish(id: User = Depends(createToken.pase_token), db: Session = De
 
 @users.post("/upload", tags=["用户模块"], name="上传头像")
 async def upload(file: Optional[UploadFile] = File(None),
-                 type:str='',
                  db: Session = Depends(get_db),
+                 id: Optional[User] =Depends(createToken.pase_token)
                  ):
-    if file and type=='token':
-        await usertokenUpad(db,file)
-    else:
-        _files = ''
-        _files = 'uploads/histiry/' + file.filename
+    if id!=None or id!="":
+        path_dir=osFilePathIsdir()
+        _files = f'{path_dir}/{file.filename}'
         rep = await file.read()
 
         with open(_files, 'wb') as f:
             f.write(rep)
+        user_update_avter(db, id, _files)
         return {
             "code": 200,
             "msg": "上传成功",
             "data": _files
         }
-
-async def usertokenUpad(db,file,id: Optional[User] = Depends(createToken.pase_token)):
-    _files = ''
-    if file:
-        _files = 'uploads/users/' + file.filename
-        rep = await file.read()
-
-        with open(_files, 'wb') as f:
-            f.write(rep)
-    user_update_avter(db, id, _files)
+#多张图片上传
+@users.post("/uploads",name="上传多张图片",tags=["用户模块"])
+async def update_item(files: List[UploadFile] = File(None),
+                      db: Session = Depends(get_db),
+                      id: Optional[User] = Depends(createToken.pase_token)
+                      )->list:
+    path_dir = osFilePathIsdir('circlese')
+    lists = [f"{path_dir}/{i.filename}" for i in files]
+    count = 0
+    for i in files:
+        _files = f'{path_dir}/{i.filename}'
+        with open(f'{_files}','wb') as f:
+            f.write(await i.read())
+        count += 1
+    post_user_uploads_my(db, uid=id, fileList=','.join(lists))
+    return {
+           "code": 200,
+            "msg": "上传成功",
+            "data": lists
+            }
+@users.get("/uploads",name="获取多张图片",tags=["用户模块"])
+async def get_uploads(id: User = Depends(createToken.pase_token), db: Session = Depends(get_db)):
+    data=get_user_uploads_my(db,id)
     return {
         "code": 200,
-        "msg": "修改成功",
-        "data": _files
+        "msg": "获取成功",
+        "data": data.p_images
     }
 @users.post("/userSave", tags=["用户模块"], name="用户信息保存")
 async def userSave(
