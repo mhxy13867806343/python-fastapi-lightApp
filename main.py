@@ -13,6 +13,7 @@ from apps.home.views import home as home_routerApi # for users
 from apps.histiry.views import histiry as histiry_routerApi # for users
 from apps.dicts.views import dicts as dicts_routerApi # for users
 from apps.semail.views import emails as emails_routerApi # for users
+from apps.emoji.views import emoji as emoji_routerApi # for users
 authorizations = {
     'Basic Auth': {
         'type': 'basic',
@@ -33,6 +34,7 @@ app.include_router(home_routerApi)
 app.include_router(histiry_routerApi)
 app.include_router(dicts_routerApi)
 app.include_router(emails_routerApi)
+app.include_router(emoji_routerApi)
 
 # CORS
 app.add_middleware(
@@ -48,7 +50,7 @@ async def add_process_time_header(request: Request, call_next):
 
     login_url = str(request.url)[22:]
     #print(login_url,'查看')
-    token_url=['dicts/list','home/list','histry/upload','users/login','users/register','histry/soupfapig','docs','openapi.json',
+    token_url=['emoji/list','dicts/list','home/list','histry/upload','users/login','users/register','histry/soupfapig','docs','openapi.json',
                'emails/send']
     user_uploadImg=['.jpg','.png','.gif','.jpeg','webp']
     if (login_url in token_url):  # 屏蔽注册、登录接口, 避免死循环

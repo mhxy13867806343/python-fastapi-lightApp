@@ -1,6 +1,7 @@
 from sqlalchemy.orm import Session,sessionmaker
 from fastapi import APIRouter, FastAPI, Depends, File, UploadFile, Form
 import requests
+import os
 import time
 import json
 import schedule
@@ -8,6 +9,7 @@ from pyquery import PyQuery as pq
 import threading
 from extend.db import ENGIN
 from models.dicts.dicts_model import CrawlerHot,DictsDict
+from models.emoji.emoji_model import Emoji
 LOCSESSION=sessionmaker(bind=ENGIN)
 class MyHotThread(threading.Thread):
     def __init__(self,type:str='juejin'):
@@ -153,9 +155,43 @@ def crawlerJob(type:str='juejin',num=24,sl=1):
         print(f'第{n}次获取')
         schedule.run_pending()
         time.sleep(sl)
-
-
-if __name__ == '__main__':
+def downJob():
     crawlerJob('juejin')
     crawlerJob('zhihu')
     crawlerJob('baidu')
+def downJobjuejin():
+    try:
+        headers = {
+            "User-Agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 13_2_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/13.0.3 Mobile/15E148 Safari/604.1 Edg/106.0.0.0",
+        }
+        for i in range(1, 131):
+            print('正在获取第', i, '个')
+            if i<=130:
+                url = f"https://cdn.sunofbeaches.com/emoji/{i}.png"
+                res = requests.get(url, headers=headers)
+                time.sleep(1)
+                with open(f'./emoji/{i}.png', 'wb') as f:
+                    f.write(res.content)
+
+            else:
+                print('获取完成')
+                break
+    except Exception as e:
+        print(e,'下载失败')
+def saveDbEmoji():
+    return
+    em=os.listdir('../../uploads/emoji')
+    em.sort(key=lambda x: int(x.split('.')[0]))
+    try:
+        _db = LOCSESSION()
+        for i in em:
+            print(i)
+            data = Emoji(e_pid=f"emoji-{i}", e_name=f"emoji-{i}", e_url=f"uploads/emoji/{i}")
+            _db.add(data)
+            _db.commit()
+            _db.flush()
+        print('正在保存第')
+    except Exception as e:
+        print(e,'保存失败')
+if __name__ == '__main__':
+    pass

@@ -1,9 +1,8 @@
 import os
 import time
-print(time.strftime("%m", time.localtime()))
-vv='../test/20221201/07'
-p=os.path.isdir(vv)
-if not p:
-    os.makedirs(vv)
-else:
-    print('已经存在')
+import requests
+
+for i in range(1,130):
+    url = f"https://cdn.sunofbeaches.com/emoji/{i}.png"
+    res = requests.get(url)
+    print(res.content)
