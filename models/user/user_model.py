@@ -70,7 +70,7 @@ class CircleOperation(Base):
     c_create_time = Column(Integer, nullable=False)#创建时间
     c_delete_is = Column(Integer, nullable=False,default=0) #0 未删除 1 已删除
 class UserUpImages(Base):
-    __tablename__ = 'user_uploadImage'
+    __tablename__ = 'user_pyq_uploadImage'
     p_id = Column(Integer, primary_key=True,autoincrement=True)
     p_user_id = Column(Integer, ForeignKey('users.id'))
     p_images=Column(String(255),nullable=False)
