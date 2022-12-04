@@ -13,6 +13,8 @@ class DictsDict(Base):
     id = Column(Integer, primary_key=True,autoincrement=True)
     key_value = Column(String(255),nullable=False)
     key_name = Column(String(255),nullable=False)
+    key_url = Column(String(255),nullable=False)
+    key_args = Column(String(255),nullable=False)
     dict_id = Column(Integer, ForeignKey('dicts.id'), nullable=False)
     dict_backref = relationship("Dicts", backref="dicts2class")
 class CrawlerHot(Base):

@@ -42,7 +42,7 @@ async def upload(keys:str=Form(...)):
 async def childAdd(dict:List[DistListRet],pid:int):
     try:
         for index, item in enumerate(dict):
-            data1=add_child_dict(item.key_value, item.key_name,pid)
+            data1=add_child_dict(item.key_value, item.key_name,item.key_url,item.key_args,pid)
             if data1==-1:
                 return {
                     "code":status_code6006,

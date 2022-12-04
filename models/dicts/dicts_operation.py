@@ -15,10 +15,10 @@ def add_dict(keys:str):
         return dicts
     return ""
 #根据父字典添加子字典
-def add_child_dict(value:str,name:str,pid:int)->list:
+def add_child_dict(value:str,name:str,url:str,key_args:str,pid:int)->list:
     dicts = session.query(Dicts).filter(Dicts.id==pid).first()
     if dicts:
-        dicts = DictsDict(key_value=value, key_name=name, dict_id=pid)
+        dicts = DictsDict(key_value=value, key_name=name, dict_id=pid,key_url=url,key_args=key_args)
         dictsdy=session.query(DictsDict).filter(DictsDict.key_value==value).all()
         for index, item in enumerate(dictsdy):
             if item.key_value==value:
