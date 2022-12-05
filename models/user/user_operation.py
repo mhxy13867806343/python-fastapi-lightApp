@@ -5,7 +5,7 @@ from fastapi.responses import JSONResponse
 import time
 import uuid
 from extend.redis_db import dbRedis_del
-from models.user.user_model import User,Dynamic,MyLable,Signature,UserUpImages
+from models.user.user_model import User,Dynamic,MyLable,Signature,UserUpImages,CircleOperation
 from extend.dataReturn import intReturn_1,intReturn_2
 from extend.redis_cache import create_redis_time
 def create_uuid(name,time,pwd):
@@ -211,9 +211,28 @@ def get_user_uploads_my(db:Session,id:int):
         print(e)
         return intReturn_1
 #保存用户上传图片
-def post_user_uploads_my(db:Session,uid:int,fileList:list)->list:
+def post_user_circleOperation_my(db:Session,uid:int,
+                                 c_content:str='',public_type:int=0,c_delete_is:int=0
+                                 ):
+    print('保存用户上传图片')
+    create_time = int(time.time())
     try:
-        dbs = UserUpImages(p_user_id=uid, p_images=fileList)
+        user=db.query(User).filter(User.id==uid).first()
+        dbs = CircleOperation(c_content=c_content,c_user_id=user.id,  c_create_time=create_time
+                              , c_delete_is=c_delete_is, c_public_type=public_type,
+                              c_name=user.nickname,c_avatar=user.avatar
+                              )
+        db.add(dbs)
+        db.commit()
+        db.flush()
+        return dbs
+    except Exception as e:
+        print(e,'aaa')
+        return intReturn_1
+def post_user_uploads_my(db:Session,uid:int,fileList:list)->list:
+    create_time = int(time.time())
+    try:
+        dbs = UserUpImages(p_user_id=uid, p_images=fileList,p_create_time=create_time)
         db.add(dbs)
         db.commit()
         db.flush()
@@ -221,3 +240,15 @@ def post_user_uploads_my(db:Session,uid:int,fileList:list)->list:
     except Exception as e:
         return intReturn_1
 
+#分页当前第几页current,page_size每页多少条数据
+def get_upyq_list_pagenation(db:Session,current:int=1,page_size:int=20)->[CircleOperation]:
+    _sum=(current-1)*page_size
+    users=db.query(CircleOperation).filter(CircleOperation.c_delete_is==0).order_by(CircleOperation.c_id.desc()).offset(_sum).limit(page_size).all()
+    return users
+def get_upyqs_list_pagenation(db:Session)->list:
+    users=db.query(UserUpImages).order_by(UserUpImages.p_create_time.desc()).all()
+    return users
+#获取总条数
+def get_upyq_list_total(db:Session)->int:
+    total=db.query(CircleOperation).count()
+    return total

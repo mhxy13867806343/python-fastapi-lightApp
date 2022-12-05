@@ -6,15 +6,15 @@ from fastapi.security import OAuth2PasswordRequestForm
 from fastapi.responses import JSONResponse
 from datetime import datetime, timedelta
 from extend.get_db import get_db
-from models.user.user_operation import post_user_tag, get_user_tag, user_update_data, get_user_login_by_pwd, \
+from models.user.user_operation import get_upyqs_list_pagenation,post_user_tag, get_user_tag, user_update_data, get_user_login_by_pwd, \
     post_user_by_zc, get_user_by_id, get_user_by_dynamic, user_update_avter, delete_user_tag, post_user_pwd_update, \
-post_user_login_out,post_user_pwd_Count,post_add_user_signature,get_user_signature,post_user_uploads_my,get_user_uploads_my
+post_user_login_out,post_user_pwd_Count,post_add_user_signature,get_user_signature,post_user_circleOperation_my,post_user_uploads_my,get_user_uploads_my,get_upyq_list_pagenation,get_upyq_list_total
 from utils.get_md5_data import get_md5_pwd
 from extend.status_code import status_code6011, status_code6006, status_code200, status_code6001, status_code6000, \
     status_code6003, status_code6007, status_code6009
 from extend.const_Num import EXPIRE_TIME
 from models.user.user_model import User, Dynamic
-from models.user.user_ret_model import UserToekRet, UserMyLableRet, UserMyUpPwdRet,UserMySignature,UserPointsRet,UserMyUpAvatarRet
+from models.user.user_ret_model import UserToekRet,UserMyCircleOperationRet, UserMyLableRet, UserMyUpPwdRet,UserMySignature,UserPointsRet,UserMyUpAvatarRet
 from utils import token as createToken  # for token
 from extend.redis_db import dbRedis_get,dbRedis_set
 from extend.redis_cache import create_redis_time
@@ -200,15 +200,50 @@ async def update_item(files: List[UploadFile] = File(None),
         count += 1
     post_user_uploads_my(db, uid=id, fileList=','.join(lists))
     return {
-           "code": 200,
+           "code": status_code200,
             "msg": "上传成功",
             "data": lists
             }
+@users.get("/pyclist",name="查看所有的朋友圈内容",tags=["用户模块"])
+def pycList(db: Session = Depends(get_db),current:int=1,page_size:int=20,id: Optional[User] = Depends(createToken.pase_token)):
+    data=get_upyq_list_pagenation(db,current,page_size)
+    total=get_upyq_list_total(db)
+    aa=get_upyqs_list_pagenation(db)
+    if(len(data)):
+        for (index, item) in enumerate(data):
+            item.c_images = aa[index].p_images
+    return {
+        "code": status_code200,
+        "msg": "获取成功",
+        "list": data,
+        "total":total
+    }
+@users.post("/csave",name="保存用户朋友圈内容",tags=["用户模块"])
+async def post_user_circleOperation_mys(
+                                         sdata:UserMyCircleOperationRet,
+                                        id: User = Depends(createToken.pase_token),
+                                        db: Session = Depends(get_db)):
+    data=post_user_circleOperation_my(db,id,sdata.c_content,sdata.public_type)
+    if(data==-1):
+        return {
+            "code": status_code6006,
+            "msg": "保存失败",
+            "data":{}
+        }
+    return {
+        "code": status_code200,
+        "msg": "提交成功",
+    }
 @users.get("/uploads",name="获取多张图片",tags=["用户模块"])
 async def get_uploads(id: User = Depends(createToken.pase_token), db: Session = Depends(get_db)):
     data=get_user_uploads_my(db,id)
+    if(data==-1):{
+        "code": status_code6006,
+        "msg": "获取失败",
+        "data":[]
+    }
     return {
-        "code": 200,
+        "code": status_code200,
         "msg": "获取成功",
         "data": data.p_images
     }
@@ -220,6 +255,11 @@ async def userSave(
         db: Session = Depends(get_db)):
     user_update_data(db, id, nickname, avatar)
     user = get_user_by_id(db, id)
+    if(not user):
+        return {
+            "code": status_code6007,
+            "msg": "修改失败",
+        }
     data_user = {
         "id": user.id,
         "username": user.username,
@@ -228,7 +268,7 @@ async def userSave(
         "nickname": user.nickname,
     }
     return {
-        "code": 200,
+        "code": status_code200,
         "msg": "修改成功",
         "data": data_user,
     }

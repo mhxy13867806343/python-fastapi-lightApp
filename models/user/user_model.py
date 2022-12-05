@@ -1,9 +1,12 @@
-from sqlalchemy import Column,Integer,String,ForeignKey,TEXT
+from sqlalchemy import Column,Integer,String,ForeignKey,TEXT,Text,BigInteger
+from sqlalchemy.sql import func
 
-8
+import time
 from sqlalchemy.orm import relationship
 from extend.db import Base,LOCSESSION,ENGIN
 
+def current_timestamp():
+    return int(time.time())
 
 class User(Base):
     __tablename__ = 'users'
@@ -62,15 +65,19 @@ class UserPointsTool(Base):
 class CircleOperation(Base):
     __tablename__ = 'circle_operation'
     c_id = Column(Integer, primary_key=True,autoincrement=True)
-    c_content = Column(String(255),nullable=False,default='')#朋友圈内容
+    c_name=Column(String(255),nullable=False)
+    c_avatar=Column(String(255),nullable=False)
+    c_content = Column(Text,nullable=False,default='')#朋友圈内容
     c_public_type = Column(Integer,nullable=False,default=0) #0 公开 1 私密
     c_user_id=Column(Integer, ForeignKey('users.id'))#谁发的
     c_lable_backref = relationship("User", backref="circle2class")
-    c_create_time = Column(Integer, nullable=False)#创建时间
+    c_create_time =Column(BigInteger,nullable=False,default=current_timestamp)#创建时间
+    c_images = Column(Text, nullable=False,default='')#图片
     c_delete_is = Column(Integer, nullable=False,default=0) #0 未删除 1 已删除
 class UserUpImages(Base):
     __tablename__ = 'user_pyq_uploadImage'
     p_id = Column(Integer, primary_key=True,autoincrement=True)
     p_user_id = Column(Integer, ForeignKey('users.id'))
     p_images=Column(String(255),nullable=False)
+    p_create_time=Column(BigInteger,nullable=False,default=current_timestamp)
     p_lable_backref = relationship("User", backref="cuseupload2class")

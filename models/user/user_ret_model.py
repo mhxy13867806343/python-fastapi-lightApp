@@ -30,3 +30,6 @@ class UserPointsRet(BaseModel):
     check_In_Days:Optional[int]=0 # 连续签到天数
 class UserMyUpAvatarRet(BaseModel):
     type: Optional[str] = None
+class UserMyCircleOperationRet(BaseModel):
+    c_content: Optional[str] = ''
+    public_type:Optional[int]=0
