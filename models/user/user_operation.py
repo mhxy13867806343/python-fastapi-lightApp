@@ -5,9 +5,10 @@ from fastapi.responses import JSONResponse
 import time
 import uuid
 from extend.redis_db import dbRedis_del
-from models.user.user_model import User,Dynamic,MyLable,Signature,UserUpImages,CircleOperation
-from extend.dataReturn import intReturn_1,intReturn_2
+from models.user.user_model import User,Dynamic,MyLable,Signature,UserUpImages,CircleOperation,UserPoints
+from extend.dataReturn import intReturn_1, intReturn_2, intReturn_a
 from extend.redis_cache import create_redis_time
+from utils.signIn import AuthorId,AuthorSign
 def create_uuid(name,time,pwd):
     data="{}{}{}".format(name,time,pwd)
     d=uuid.uuid5(uuid.NAMESPACE_DNS, data)
@@ -252,3 +253,60 @@ def get_upyqs_list_pagenation(db:Session)->list:
 def get_upyq_list_total(db:Session)->int:
     total=db.query(CircleOperation).count()
     return total
+#获取用户签到列表
+def get_user_sign_list(db:Session,id:int):
+    try:
+        user=db.query(User).filter(User.id==id).first()
+        if user:
+            potinList=db.query(UserPoints).join(User,UserPoints.user_id==user.id).all()
+            return potinList
+        return intReturn_1
+    except Exception as e:
+        return intReturn_1
+#设置用户签到
+def post_click_user_sign(db:Session,offset:int,uid:int):
+    try:
+        user = db.query(User).filter(User.id == uid).first()
+        if user:
+            author = AuthorId(str(user.id), user.nickname)
+            auser = AuthorSign(author)
+            auser.do_sign(db, user.id, offset)
+    except Exception as e:
+        return intReturn_1
+#获取用户签到天数
+def get_user_sign_days(db:Session,id:int):
+    try:
+        user=db.query(User).filter(User.id==id).first()
+        if user:
+            point=db.query(func(UserPoints.is_Check==1)).join(User,UserPoints).scalar()
+            return point
+    except Exception as e:
+        return intReturn_1
+#获取用户某天是否签到过
+def get_user_sign_check(db:Session,uid:int):
+    import datetime
+    try:
+        user = db.query(User).filter(User.id == uid).first()
+        if user:
+            author = AuthorId(str(user.id), user.nickname)
+            auser = AuthorSign(author)
+            auser.get_expire()
+            check=int(datetime.datetime.now().strftime('%d'))
+            is_check=auser.check_sign(check)
+            return 1 if is_check else 0
+    except Exception as e:
+        return intReturn_1
+def get_user_sign_check_day(db:Session,uid:int):
+    try:
+        user = db.query(User).filter(User.id == uid).first()
+        if user:
+            author = AuthorId(str(user.id), user.nickname)
+            auser = AuthorSign(author)
+            auser.get_sign_count()
+            auser.get_continuous_sign_count(author)
+            return {
+                "sigi_count": auser.get_sign_count(),
+                "author_sigi_count":  auser.get_continuous_sign_count(author)
+            }
+    except Exception as e:
+        return intReturn_1

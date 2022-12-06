@@ -24,8 +24,7 @@ class UserPoints(Base):
     __tablename__ = 'user_points'
     id = Column(Integer, primary_key=True,autoincrement=True)
     user_id=Column(Integer,ForeignKey('users.id'))
-    user_points=Column(Integer,nullable=False) #当前用户积分
-    now_days=Column(Integer,nullable=False,default=0) #当前天数
+    now_days=Column(Integer,nullable=False,default=0) #签到天数
     is_Check=Column(Integer,nullable=False,default=0) #是否签到 0未签到 1已签到
     check_time=Column(Integer,nullable=False,default=0) #签到时间
     check_In_Days=Column(Integer,nullable=False,default=0) #连续签到天数

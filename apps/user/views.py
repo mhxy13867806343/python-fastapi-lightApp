@@ -8,7 +8,10 @@ from datetime import datetime, timedelta
 from extend.get_db import get_db
 from models.user.user_operation import get_upyqs_list_pagenation,post_user_tag, get_user_tag, user_update_data, get_user_login_by_pwd, \
     post_user_by_zc, get_user_by_id, get_user_by_dynamic, user_update_avter, delete_user_tag, post_user_pwd_update, \
-post_user_login_out,post_user_pwd_Count,post_add_user_signature,get_user_signature,post_user_circleOperation_my,post_user_uploads_my,get_user_uploads_my,get_upyq_list_pagenation,get_upyq_list_total
+post_user_login_out,post_user_pwd_Count,post_add_user_signature,get_user_signature,post_user_circleOperation_my,\
+    post_user_uploads_my,get_user_uploads_my,get_upyq_list_pagenation,get_upyq_list_total,get_user_sign_list,post_click_user_sign,\
+get_user_sign_check,get_user_sign_check_day
+
 from utils.get_md5_data import get_md5_pwd
 from extend.status_code import status_code6011, status_code6006, status_code200, status_code6001, status_code6000, \
     status_code6003, status_code6007, status_code6009
@@ -429,4 +432,40 @@ def postSignature(data:UserMySignature,user_id: User = Depends(createToken.pase_
     return {
         "code": status_code200,
         "msg": "修改成功",
+    }
+@users.post("/signin", tags=["用户模块"], name="用户签到")
+def postUserSignin(offset:int,user_id: User = Depends(createToken.pase_token), db: Session = Depends(get_db)):
+    import datetime
+    today = datetime.date.today()
+    if offset!=int(today.strftime('%d')):
+        return {
+            "code": status_code6006,
+            "msg": "签到失败,请检查时间",
+        }
+    data=post_click_user_sign(db,offset,user_id)
+    if data==-1:
+        return {
+            "code": status_code6006,
+            "msg": "签到失败",
+
+        }
+    return {
+        "code": status_code200,
+        "msg": "签到成功",
+
+    }
+@users.get("/signin", tags=["用户模块"], name="获取用户签到列表")
+def getUserSignin(user_id: User = Depends(createToken.pase_token), db: Session = Depends(get_db)):
+    list=get_user_sign_list(db,user_id)
+    is_check=get_user_sign_check(db,user_id)
+    dba=get_user_sign_check_day(db,user_id)
+    print(dba,444444444)
+    return {
+        "code": status_code200,
+        "msg": "获取成功",
+        "data": {
+            "list": list,
+            "isCheck": is_check,
+            **dba
+        }
     }
