@@ -6,7 +6,7 @@ import datetime
 import time
 import uuid
 from extend.redis_db import dbRedis_del
-from models.user.user_model import User,Dynamic,MyLable,Signature,UserUpImages,CircleOperation,UserPoints
+from models.user.user_model import User,Dynamic,MyLable,Signature,UserUpImages,CircleOperation,UserPoints,UserSampleNumId
 from extend.dataReturn import intReturn_1, intReturn_2, intReturn_a
 from extend.redis_cache import create_redis_time
 from utils.signIn import AuthorId,AuthorSign
@@ -14,16 +14,28 @@ def create_uuid(name,time,pwd):
     data="{}{}{}".format(name,time,pwd)
     d=uuid.uuid5(uuid.NAMESPACE_DNS, data)
     return d
-
+def create_random_user_num(db:Session):
+    import random
+    try:
+        t = random.sample(range(10000, 999999999999999), k=50000)
+        for i in t:
+            data = UserSampleNumId(n_type_num=i, n_is_delte=0, n_is_usage=0)
+            db.add(data)
+            db.commit()
+            db.flush()
+    except Exception as e:
+        db.rollback()
+        print(e,'77777')
 #登录用户 -1 用户名不存在 -2 密码错误 users 登录成功
 def get_user_login_by_pwd(db:Session,username:str='',pwd:str='')->User:
-    userTup = (User.id, User.username, User.avatar, User.nickname, User.reg_time,User.pwdCount,User.pwdTime)
+    userTup = (User.id, User.username, User.avatar, User.nickname, User.reg_time,User.pwdCount,User.pwdTime,
+               User.user_type_num
+               )
     _username= db.query(*userTup).filter(User.username==username).first()
     if _username is None or _username=='':
         return intReturn_1
     user=db.query(*userTup).filter(User.username==username,User.password==pwd).first()
     return user if user else -2
-
 #注册用户
 def post_user_by_zc(db:Session,username:str,password:str):
     user=db.query(User).filter(User.username==username).first()
@@ -44,12 +56,12 @@ def post_user_by_zc(db:Session,username:str,password:str):
 
 #根据用户id获取用户信息
 def get_user_by_id(db:Session,user_id:int):
-    userTup = (User.id, User.username, User.avatar, User.nickname, User.reg_time,User.pwdCount,User.pwdTime)
+    userTup = (User.id, User.username, User.avatar, User.nickname, User.reg_time,User.pwdCount,User.pwdTime,User.user_type_num)
     user = db.query(*userTup).filter(User.id == user_id).first()
     return user
 #根据某个用户发动态
 def get_user_by_dynamic(db:Session,uid:int,content:str='',positioning:str=''):
-    userTup = (User.id, User.username, User.avatar, User.nickname)
+    userTup = (User.id, User.username, User.avatar, User.nickname,User.user_type_num)
     user=db.query(*userTup).filter(User.id==uid).one()
     create_time = int(time.time())
     if user:

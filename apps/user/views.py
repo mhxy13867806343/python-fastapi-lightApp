@@ -10,7 +10,7 @@ from models.user.user_operation import get_upyqs_list_pagenation,post_user_tag, 
     post_user_by_zc, get_user_by_id, get_user_by_dynamic, user_update_avter, delete_user_tag, post_user_pwd_update, \
 post_user_login_out,post_user_pwd_Count,post_add_user_signature,get_user_signature,post_user_circleOperation_my,\
     post_user_uploads_my,get_user_uploads_my,get_upyq_list_pagenation,get_upyq_list_total,get_user_sign_list,post_click_user_sign,\
-get_user_sign_check,get_user_sign_check_day,get_not_sign
+get_user_sign_check,get_user_sign_check_day,get_not_sign,create_random_user_num
 
 from utils.get_md5_data import get_md5_pwd
 from extend.status_code import status_code6011, status_code6006, status_code200, status_code6001, status_code6000, \
@@ -68,6 +68,7 @@ def post_user_login(data: OAuth2PasswordRequestForm = Depends(), db: Session = D
         "nickname": user.nickname,
         "pwdCount": user.pwdCount,
         "pwdTime": user.pwdTime,
+        "user_type_num":user.user_type_num
     }
     dbRedis_set('user', user.username, data=str(data_user))
     content = {"code": 200, "msg": "登录成功", "token": userToken,
@@ -84,6 +85,7 @@ def jSONRRedisUser(user,type='ext'):
         "nickname": user.nickname,
         "pwdCount": user.pwdCount,
         "pwdTime": user.pwdTime,
+        "user_type_num":user.user_type_num
     }
     if(type=='ext'):
         dbRedis_set('user', user.username, data=str(data_user))
@@ -137,6 +139,7 @@ def get_user_bys_by_token(db,id):
             "nickname": user.nickname,
             "pwdCount": user.pwdCount,
             "pwdTime": user.pwdTime,
+            "user_type_num":user.user_type_num
         }
         content = {"code": status_code200, "msg": "获取成功", "data": data_user, }
         return JSONResponse(content=content)
@@ -269,6 +272,7 @@ async def userSave(
         "avatar": user.avatar,
         "reg_time": user.reg_time,
         "nickname": user.nickname,
+        "user_type_num": user.user_type_num
     }
     return {
         "code": status_code200,
