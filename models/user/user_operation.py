@@ -2,11 +2,12 @@
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 from fastapi.responses import JSONResponse
+import random
 import datetime
 import time
 import uuid
 from extend.redis_db import dbRedis_del
-from models.user.user_model import User,Dynamic,MyLable,Signature,UserUpImages,CircleOperation,UserPoints,UserSampleNumId
+from models.user.user_model import User,Dynamic,MyLable,Signature,UserUpImages,CircleOperation,UserPoints,UserSampleNumId,UserSampleNumIdHot
 from extend.dataReturn import intReturn_1, intReturn_2, intReturn_a
 from extend.redis_cache import create_redis_time
 from utils.signIn import AuthorId,AuthorSign
@@ -14,8 +15,18 @@ def create_uuid(name,time,pwd):
     data="{}{}{}".format(name,time,pwd)
     d=uuid.uuid5(uuid.NAMESPACE_DNS, data)
     return d
+def create_random_hot(db:Session,num=7):
+
+    try:
+        t = random.sample(range(100, 99999), k=num)
+        for i in t:
+            data = UserSampleNumIdHot(hot_id_num=i)
+            db.add(data)
+            db.commit()
+            db.flush()
+    except Exception as e:
+        db.rollback()
 def create_random_user_num(db:Session):
-    import random
     try:
         t = random.sample(range(10000, 999999999999999), k=50000)
         for i in t:
@@ -25,7 +36,9 @@ def create_random_user_num(db:Session):
             db.flush()
     except Exception as e:
         db.rollback()
-        print(e,'77777')
+
+def get_samplenumIdhot(db:Session)->list:
+    return db.query(UserSampleNumIdHot).all()
 #登录用户 -1 用户名不存在 -2 密码错误 users 登录成功
 def get_user_login_by_pwd(db:Session,username:str='',pwd:str='')->User:
     userTup = (User.id, User.username, User.avatar, User.nickname, User.reg_time,User.pwdCount,User.pwdTime,
@@ -265,6 +278,14 @@ def get_upyqs_list_pagenation(db:Session)->list:
 #获取总条数
 def get_upyq_list_total(db:Session)->int:
     total=db.query(CircleOperation).count()
+    return total
+def get_senum_list_pagenation(db:Session,keys:str='',current:int=1,page_size:int=20)->list:
+    _sum = (current - 1) * page_size
+    alist=db.query(UserSampleNumId).filter(UserSampleNumId.n_type_num.like("%{}%".format(keys))).offset(_sum).limit(page_size).all()
+    return alist
+#获取用户id总条数
+def get_senum_list_total_uid(db:Session,keys:str='')->int:
+    total = db.query(UserSampleNumId).filter(UserSampleNumId.n_type_num.like("%{}%".format(keys))).count()
     return total
 #获取用户签到列表
 def get_user_sign_list(db:Session,id:int):

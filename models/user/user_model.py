@@ -88,3 +88,7 @@ class UserSampleNumId(Base):
     n_type_num= Column(BigInteger, nullable=False,default=0) #与用户进行关联的num_id
     n_is_delte=Column(Integer, nullable=False,default=0) #是否被删除 0未删除  1删除
     n_is_usage=Column(Integer, nullable=False,default=0) #是否被使用 0未使用  1使用
+class UserSampleNumIdHot(Base):
+    __tablename__ = 'user_sample_hot_num'
+    hot_id = Column(Integer, primary_key=True, autoincrement=True)
+    hot_id_num = Column(BigInteger, nullable=False, default=0)

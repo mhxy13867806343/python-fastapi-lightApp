@@ -10,11 +10,12 @@ from models.user.user_operation import get_upyqs_list_pagenation,post_user_tag, 
     post_user_by_zc, get_user_by_id, get_user_by_dynamic, user_update_avter, delete_user_tag, post_user_pwd_update, \
 post_user_login_out,post_user_pwd_Count,post_add_user_signature,get_user_signature,post_user_circleOperation_my,\
     post_user_uploads_my,get_user_uploads_my,get_upyq_list_pagenation,get_upyq_list_total,get_user_sign_list,post_click_user_sign,\
-get_user_sign_check,get_user_sign_check_day,get_not_sign,create_random_user_num
+get_user_sign_check,get_user_sign_check_day,get_not_sign,create_random_user_num,create_random_hot,get_samplenumIdhot,\
+get_senum_list_pagenation,get_senum_list_total_uid
 
 from utils.get_md5_data import get_md5_pwd
 from extend.status_code import status_code6011, status_code6006, status_code200, status_code6001, status_code6000, \
-    status_code6003, status_code6007, status_code6009
+    status_code6003, status_code6007, status_code6009,status_code6012
 from extend.const_Num import EXPIRE_TIME
 from models.user.user_model import User, Dynamic
 from models.user.user_ret_model import UserToekRet,UserMyCircleOperationRet, UserMyLableRet, UserMyUpPwdRet,UserMySignature,UserPointsRet,UserMyUpAvatarRet
@@ -483,4 +484,28 @@ def getUserSignin(user_id: User = Depends(createToken.pase_token), db: Session =
             **dba,
 
         }
+    }
+
+@users.get("/hotid", tags=["用户模块"], name='热门用户id')
+def hotid(db: Session = Depends(get_db)):
+    data=get_samplenumIdhot(db)
+    return {
+        "msg": f"获取成功",
+        "code": status_code200,
+        "data": data
+    }
+@users.get("/hotidlist", tags=["用户模块"], name='热门用户id列表')
+def senum(key:str='',current:int=1,page_size:int=20,db: Session = Depends(get_db)):
+    _list=get_senum_list_pagenation(db,key,current,page_size)
+    total=get_senum_list_total_uid(db,key)
+    return {
+        "msg": f"获取成功",
+        "code": status_code200,
+         "data": {
+            "list": _list,
+            "total": total,
+             "page_size": page_size,
+            "current": current,
+             "count": total//page_size+1
+         }
     }

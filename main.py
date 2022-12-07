@@ -50,7 +50,7 @@ async def add_process_time_header(request: Request, call_next):
 
     login_url = str(request.url)[22:]
     #print(login_url,'查看')
-    token_url=['dicts/hot','dicts/childList','dicts/childAdd','dicts/add','emoji/list','dicts/list','home/list','histry/upload','users/login','users/register','histry/soupfapig','docs','openapi.json',
+    token_url=['users/hotidlist','users/hotid','dicts/hot','dicts/childList','dicts/childAdd','dicts/add','emoji/list','dicts/list','home/list','histry/upload','users/login','users/register','histry/soupfapig','docs','openapi.json',
                'emails/send']
     user_uploadImg=['.jpg','.png','.gif','.jpeg','webp']
     if (login_url in token_url):  # 屏蔽注册、登录接口, 避免死循环
