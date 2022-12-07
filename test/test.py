@@ -29,10 +29,14 @@ class AuthorSignDemo:
 
     # 签到列表
     def sign_list(self):
+        ls=[]
         mdate = datetime.now().strftime('%Y-%m')
         for i in range(calendar.monthrange(datetime.now().year, datetime.now().month)[1]):
             date = mdate + '-' + str(i+1)
+            if self.check_sign(i+1):
+                ls.append(date)
             print(date + '\t' + ('√' if self.check_sign(i+1) else '-'))
+        print(ls,22)
 
     # 签到天数统计
     def get_sign_count(self):

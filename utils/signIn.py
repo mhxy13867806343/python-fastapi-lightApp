@@ -86,10 +86,19 @@ class AuthorSign:
     # 签到列表
     def sign_list(self):
         mdate = datetime.now().strftime('%Y-%m')
+        _sign_list=[]
         for i in range(calendar.monthrange(datetime.now().year, datetime.now().month)[1]):
             date = mdate + '-' + str(i+1)
-            print(date + '\t' + ('√' if self.check_sign(i+1) else '-'))
-
+            #print(date + '\t' + ('√' if self.check_sign(i+1) else '-'))
+            if self.check_sign(i+1):
+                _sign_list.append(date)
+        return _sign_list
+    #查询哪几天未签到
+    def get_not_sign(self):
+        key = self.author.id + ':' + str(datetime.now().year) + str(datetime.now().month)
+        for i in range(calendar.monthrange(datetime.now().year, datetime.now().month)[1]):
+            if(self.check_sign(i+1)==False):
+                return intReturn_1
     # 签到天数统计
     def get_sign_count(self):
         key = self.author.id + ':' + str(datetime.now().year) + str(datetime.now().month)

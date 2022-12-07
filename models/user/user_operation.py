@@ -2,6 +2,7 @@
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 from fastapi.responses import JSONResponse
+import datetime
 import time
 import uuid
 from extend.redis_db import dbRedis_del
@@ -284,7 +285,6 @@ def get_user_sign_days(db:Session,id:int):
         return intReturn_1
 #获取用户某天是否签到过
 def get_user_sign_check(db:Session,uid:int):
-    import datetime
     try:
         user = db.query(User).filter(User.id == uid).first()
         if user:
@@ -309,4 +309,25 @@ def get_user_sign_check_day(db:Session,uid:int):
                 "author_sigi_count":  auser.get_continuous_sign_count(author)
             }
     except Exception as e:
+        return intReturn_1
+#哪些天未签到的
+def get_not_sign(db:Session,uid:int,date)->list:
+    try:
+        dates=datetime.datetime.strptime(date,'%Y-%m-%d')
+        start_time=datetime.datetime.combine(dates,datetime.time.min)
+        end_time=datetime.datetime.combine(dates,datetime.time.max)
+        start_time =int( time.mktime(time.strptime(start_time.strftime("%Y-%m-%d %H%M%S"), "%Y-%m-%d %H%M%S")))
+        end_time =int( time.mktime(time.strptime(end_time.strftime("%Y-%m-%d %H%M%S"), "%Y-%m-%d %H%M%S")))
+        user = db.query(User).filter(User.id == uid).first()
+        results = db.query(UserPoints).join(User, UserPoints.user_id == user.id).filter(UserPoints.check_time
+                                                                                        >= start_time,
+                                                                                        UserPoints.check_time <= end_time
+                                                                                        ).all()
+        print(results, 'test',dates,start_time,end_time)
+        if results:
+            return results
+        return []
+
+    except Exception as e:
+        print(e,890)
         return intReturn_1
