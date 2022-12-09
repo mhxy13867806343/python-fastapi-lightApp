@@ -54,8 +54,7 @@ class AuthorSign:
             return intReturn_1
         print('进行中',authorNone)
     # 某天签到
-    def do_sign(self,db:Session,id:int, offset=None):
-        print('进行中',id,self.check_sign(offset),offset,22222,33333)
+    def do_sign(self, db: Session, id: int, offset: object = None) -> object:
         if self.check_sign(offset)==False:
 
             key = self.author.id + ':' + str(datetime.now().year) + str(datetime.now().month)
@@ -63,8 +62,9 @@ class AuthorSign:
             self.r.setbit(key, offset, 1)
             check_time = int(time.time())
             is_Check = 1 if offset else 0
+            user_id=self.author.id
             datas = UserPoints(
-                user_id=self.author.id,
+                user_id=user_id,
                 is_Check=is_Check, check_time=check_time,
                 check_In_Days=self.get_continuous_sign_count(self.author),
                 now_days=self.get_sign_count()
@@ -117,3 +117,20 @@ class AuthorSign:
             else:
                 continues_count = 0
         return res
+def get_not_list_sign(db:Session,user_id:int):
+    import datetime
+    today=datetime.date.today()
+    cd = today - datetime.timedelta(days=1)
+    vv = today.strftime('%Y-%m-%d %H:%M:%S')
+    cdo = time.strptime(cd.strftime("%Y-%m-%d %H:%M:%S"), "%Y-%m-%d %H:%M:%S")
+    cd1 = time.mktime(cdo)
+    checkin = db.query(UserPoints).get(cd1)
+    if checkin is None:
+        checkin = UserPoints(
+            user_id=user_id,
+            is_Check=0, check_time=cd1,
+            check_In_Days=0,
+            now_days=0
+        )
+        db.add(checkin)
+        db.commit()

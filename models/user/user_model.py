@@ -20,7 +20,7 @@ class User(Base):
     avatar = Column(String(255),nullable=False)
     nickname = Column(String(255),nullable=False)
     reg_time = Column(Integer,nullable=False)
-    user_type_num= Column(Integer, nullable=False,default=0)
+    user_type_num= Column(String(255), nullable=False,default='0')
 class UserPoints(Base):
     __tablename__ = 'user_points'
     id = Column(Integer, primary_key=True,autoincrement=True)
@@ -86,8 +86,10 @@ class UserSampleNumId(Base):
     __tablename__ = 'user_sample_num'
     n_id=Column(Integer, primary_key=True,autoincrement=True)
     n_type_num= Column(BigInteger, nullable=False,default=0) #与用户进行关联的num_id
+    n_user_id = Column(Integer, ForeignKey('users.id'))
     n_is_delte=Column(Integer, nullable=False,default=0) #是否被删除 0未删除  1删除
     n_is_usage=Column(Integer, nullable=False,default=0) #是否被使用 0未使用  1使用
+    n_lable_backref = relationship("User", backref="UserSampleNumId2class")
 class UserSampleNumIdHot(Base):
     __tablename__ = 'user_sample_hot_num'
     hot_id = Column(Integer, primary_key=True, autoincrement=True)

@@ -11,7 +11,7 @@ from models.user.user_operation import get_upyqs_list_pagenation,post_user_tag, 
 post_user_login_out,post_user_pwd_Count,post_add_user_signature,get_user_signature,post_user_circleOperation_my,\
     post_user_uploads_my,get_user_uploads_my,get_upyq_list_pagenation,get_upyq_list_total,get_user_sign_list,post_click_user_sign,\
 get_user_sign_check,get_user_sign_check_day,get_not_sign,create_random_user_num,create_random_hot,get_samplenumIdhot,\
-get_senum_list_pagenation,get_senum_list_total_uid
+get_senum_list_pagenation,get_senum_list_total_uid,post_isUserSampleNumId
 
 from utils.get_md5_data import get_md5_pwd
 from extend.status_code import status_code6011, status_code6006, status_code200, status_code6001, status_code6000, \
@@ -23,6 +23,7 @@ from utils import token as createToken  # for token
 from extend.redis_db import dbRedis_get,dbRedis_set
 from extend.redis_cache import create_redis_time
 from utils.tools import osFilePathIsdir
+from utils.signIn import get_not_list_sign
 users = APIRouter(
     prefix="/users",
     tags=["用户模块"],
@@ -259,13 +260,35 @@ async def userSave(
         id: User = Depends(createToken.pase_token),
         nickname: Optional[str] = Form(None),
         avatar: Optional[str] = Form(None),
+        user_num: Optional[str] = Form(None),
         db: Session = Depends(get_db)):
-    user_update_data(db, id, nickname, avatar)
+    user_update_data(db, id, nickname, avatar,user_num)
     user = get_user_by_id(db, id)
+    _data=post_isUserSampleNumId(db,id,user_num)
     if(not user):
         return {
             "code": status_code6007,
             "msg": "修改失败",
+        }
+    if _data==-99:
+        return {
+            "code": status_code6007,
+            "msg": "db参数错误",
+        }
+    if _data==-100:
+        return {
+            "code": status_code6007,
+            "msg": "参数错误",
+        }
+    if _data==-101:
+        return {
+            "code": status_code6007,
+            "msg": "user_num不存在",
+        }
+    if user==-2 or _data==-1:
+        return {
+            "code": status_code6007,
+            "msg": "用户标识没有修改成功",
         }
     data_user = {
         "id": user.id,
@@ -461,12 +484,10 @@ def postUserSignin(offset:int,user_id: User = Depends(createToken.pase_token), d
     }
 @users.get("/signin", tags=["用户模块"], name="获取用户签到列表")
 def getUserSignin(user_id: User = Depends(createToken.pase_token), db: Session = Depends(get_db)):
+    get_not_list_sign(db,user_id)
     list=get_user_sign_list(db,user_id)
     is_check=get_user_sign_check(db,user_id)
     dba=get_user_sign_check_day(db,user_id)
-    import datetime
-    now = datetime.datetime.now()
-    notSign=get_not_sign(db,user_id,now.strftime("%Y-%m-%d"))
 
     if dba==-1:
         return {
@@ -479,10 +500,9 @@ def getUserSignin(user_id: User = Depends(createToken.pase_token), db: Session =
         "code": status_code200,
         "msg": "获取成功",
         "data": {
-            "list": notSign,
+            "list": list,
             "isCheck": is_check,
-            **dba,
-
+            **dba
         }
     }
 

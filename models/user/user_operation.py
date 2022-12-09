@@ -99,12 +99,16 @@ def user_update_avter(db:Session,id:int,avatar:str=''):
     db.commit()
     db.flush()
     return user
-def user_update_data(db:Session,id:int,nickname:str='',avatar:str=''):
+def user_update_data(db:Session,id:int,nickname:str='',avatar:str='',user_num:str=0):
     user=db.query(User).filter(User.id==id).first()
     if nickname:
         user.nickname=nickname
     if avatar:
         user.avatar=avatar
+    if user_num==0 or not user_num or user_num=='':
+        return intReturn_2
+    if user_num:
+        user.user_type_num=user_num
     db.commit()
     db.flush()
     return user
@@ -292,7 +296,7 @@ def get_user_sign_list(db:Session,id:int):
     try:
         user=db.query(User).filter(User.id==id).first()
         if user:
-            potinList=db.query(UserPoints).join(User,UserPoints.user_id==user.id).all()
+            potinList = db.query(UserPoints).join(User, UserPoints.user_id == user.id).all()
             return potinList
         return intReturn_1
     except Exception as e:
@@ -356,7 +360,6 @@ def get_not_sign(db:Session,uid:int,date)->list:
                                                                                         >= start_time,
                                                                                         UserPoints.check_time <= end_time
                                                                                         ).all()
-        print(results, 'test',dates,start_time,end_time)
         if results:
             return results
         return []
@@ -364,3 +367,21 @@ def get_not_sign(db:Session,uid:int,date)->list:
     except Exception as e:
         print(e,890)
         return intReturn_1
+def post_isUserSampleNumId(db:Session,uid:int,type_num:str='')->bool:
+    if not db:
+        return -99
+    if not uid:
+        return -100
+    if not type_num:
+        return -101
+    data=db.query(User).filter(User.id==uid).first()
+    if data:
+        db.query(UserSampleNumId).filter(UserSampleNumId.n_type_num==type_num).update({
+            UserSampleNumId.n_is_usage:1,
+            UserSampleNumId.n_user_id:uid,
+            UserSampleNumId.n_is_delte:0 })
+        db.commit()
+        db.flush()
+        return data
+    return intReturn_1
+#UserSampleNumId

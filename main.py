@@ -35,21 +35,26 @@ app.include_router(histiry_routerApi)
 app.include_router(dicts_routerApi)
 app.include_router(emails_routerApi)
 app.include_router(emoji_routerApi)
+origins = [
+"*"
 
+]  #也可以设置为"*"，即为所有。
 # CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_origins=origins,  # 允许访问的源
+    allow_credentials=True,  # 支持 cookie
+    allow_methods=["*"],  # 允许使用的请求方法
+    allow_headers=["*"]  # 允许携带的 Headers
 )
 @app.middleware("http")
 async def add_process_time_header(request: Request, call_next):
     response = await call_next(request)
 
     login_url = str(request.url)[22:]
-    #print(login_url,'查看')
+    if login_url=='undefined':
+        return JSONResponse({'msg': 'token验证失败,请重新登陆!', 'code': status.HTTP_401_UNAUTHORIZED})
+    print(login_url,'222查看')
     token_url=['users/hotidlist','users/hotid','dicts/hot','dicts/childList','dicts/childAdd','dicts/add','emoji/list','dicts/list','home/list','histry/upload','users/login','users/register','histry/soupfapig','docs','openapi.json',
                'emails/send']
     user_uploadImg=['.jpg','.png','.gif','.jpeg','webp']
@@ -63,12 +68,15 @@ async def add_process_time_header(request: Request, call_next):
         if login_url.endswith(i):
             return response
     try:
-        if (login_url=='users/upload'):
-            pass
+        print(login_url,'查看')
         token = request.headers['Authorization']  # 获取前端传过来token
+        print(token,'token')
         # jwt.decode(token, key=SECRET_KEY)
 
     except Exception as e:
+        if request.headers.get('Authorization') is None:
+            print('token验证失败,请重新登陆!')
+            return JSONResponse({'msg': 'token验证失败,请重新登陆!', 'code': status.HTTP_401_UNAUTHORIZED})
         logging.warning(e)
         return JSONResponse({'msg': 'token验证失败,请重新登陆!', 'code': status.HTTP_401_UNAUTHORIZED})
 
