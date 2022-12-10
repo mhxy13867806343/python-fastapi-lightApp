@@ -292,14 +292,22 @@ def get_senum_list_total_uid(db:Session,keys:str='')->int:
     total = db.query(UserSampleNumId).filter(UserSampleNumId.n_type_num.like("%{}%".format(keys))).count()
     return total
 #获取用户签到列表
-def get_user_sign_list(db:Session,id:int):
+def get_user_sign_list(db:Session,id:int,offset:int=0):
     try:
         user=db.query(User).filter(User.id==id).first()
+        author = AuthorId(str(user.id), user.nickname)
+        auser = AuthorSign(author)
         if user:
-            potinList = db.query(UserPoints).join(User, UserPoints.user_id == user.id).all()
-            return potinList
+            _dict = {
+                "now_days":auser.get_sign_count(),  # 签到第几天了
+                "is_Check": 1 if auser.check_sign(offset) else 0,
+                "check_In_Days": auser.get_continuous_sign_count(),
+            }
+            print(_dict, 8888888)
+            return _dict
         return intReturn_1
     except Exception as e:
+        print(e,'xxxxxxxx')
         return intReturn_1
 #设置用户签到
 def post_click_user_sign(db:Session,offset:int,uid:int):
@@ -327,46 +335,11 @@ def get_user_sign_check(db:Session,uid:int):
         if user:
             author = AuthorId(str(user.id), user.nickname)
             auser = AuthorSign(author)
-            auser.get_expire()
-            check=int(datetime.datetime.now().strftime('%d'))
-            is_check=auser.check_sign(check)
-            return 1 if is_check else 0
-    except Exception as e:
-        return intReturn_1
-def get_user_sign_check_day(db:Session,uid:int):
-    try:
-        user = db.query(User).filter(User.id == uid).first()
-        if user:
-            author = AuthorId(str(user.id), user.nickname)
-            auser = AuthorSign(author)
-            auser.get_sign_count()
-            auser.get_continuous_sign_count(author)
-            return {
-                "sigi_count": auser.get_sign_count(),
-                "author_sigi_count":  auser.get_continuous_sign_count(author)
-            }
+            _sign_list=auser.sign_list()
+            return _sign_list
     except Exception as e:
         return intReturn_1
 #哪些天未签到的
-def get_not_sign(db:Session,uid:int,date)->list:
-    try:
-        dates=datetime.datetime.strptime(date,'%Y-%m-%d')
-        start_time=datetime.datetime.combine(dates,datetime.time.min)
-        end_time=datetime.datetime.combine(dates,datetime.time.max)
-        start_time =int( time.mktime(time.strptime(start_time.strftime("%Y-%m-%d %H%M%S"), "%Y-%m-%d %H%M%S")))
-        end_time =int( time.mktime(time.strptime(end_time.strftime("%Y-%m-%d %H%M%S"), "%Y-%m-%d %H%M%S")))
-        user = db.query(User).filter(User.id == uid).first()
-        results = db.query(UserPoints).join(User, UserPoints.user_id == user.id).filter(UserPoints.check_time
-                                                                                        >= start_time,
-                                                                                        UserPoints.check_time <= end_time
-                                                                                        ).all()
-        if results:
-            return results
-        return []
-
-    except Exception as e:
-        print(e,890)
-        return intReturn_1
 def post_isUserSampleNumId(db:Session,uid:int,type_num:str='')->bool:
     if not db:
         return -99
@@ -384,4 +357,3 @@ def post_isUserSampleNumId(db:Session,uid:int,type_num:str='')->bool:
         db.flush()
         return data
     return intReturn_1
-#UserSampleNumId

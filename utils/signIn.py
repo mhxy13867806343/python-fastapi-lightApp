@@ -32,7 +32,6 @@ class AuthorSign:
     #设置过期时间
     def set_expire(self):
         # 获取当前时间
-        print('设置过期时间',444444444)
         now = datetime.datetime.now()
         zeroToday = now - datetime.timedelta(hours=now.hour, minutes=now.minute, seconds=now.second,
                                              microseconds=now.microsecond)
@@ -40,7 +39,6 @@ class AuthorSign:
         lastToday = zeroToday + datetime.timedelta(hours=23, minutes=59, seconds=59)
         v4=lastToday.strftime("%H:%M:%S")
         v5 = time.strftime("%H:%M:%S", time.localtime())
-        print(v4,v5,'aaaaaaa')
         if(v4!=v5):
             self.r.expire(f"exp-{self.author.id}", 1)
         else:
@@ -49,7 +47,6 @@ class AuthorSign:
     #获取过期时间
     def get_expire(self):
         authorNone=self.r.get(f"exp-{self.author.id}")
-        print(authorNone,3333333333333333)
         if authorNone is None:
             return intReturn_1
         print('进行中',authorNone)
@@ -63,11 +60,14 @@ class AuthorSign:
             check_time = int(time.time())
             is_Check = 1 if offset else 0
             user_id=self.author.id
+            # 与后端字段相同
+            #写入数据库中去
             datas = UserPoints(
-                user_id=user_id,
-                is_Check=is_Check, check_time=check_time,
-                check_In_Days=self.get_continuous_sign_count(self.author),
-                now_days=self.get_sign_count()
+                user_id=user_id, # 用户id
+                is_Check=is_Check, #是否签到过了
+                check_time=check_time,# 签到时间戳
+                check_In_Days=self.get_continuous_sign_count(),# 连续签到天数
+                now_days= datetime.now().day - 1# 签到第几天了
             )
 
             db.add(datas)
@@ -85,31 +85,41 @@ class AuthorSign:
 
     # 签到列表
     def sign_list(self):
+        _sign_list = []
         mdate = datetime.now().strftime('%Y-%m')
-        _sign_list=[]
         for i in range(calendar.monthrange(datetime.now().year, datetime.now().month)[1]):
-            date = mdate + '-' + str(i+1)
-            #print(date + '\t' + ('√' if self.check_sign(i+1) else '-'))
-            if self.check_sign(i+1):
-                _sign_list.append(date)
+
+            if i + 1 > datetime.now().day:  # 从 每个月1号 开始到今天 -1吧
+                # 如果当前日期已经超过今天，则退出循环
+                break
+            _date = mdate + '-' + str(i + 1)
+            _type = 1 if self.check_sign(i + 1) else 0
+            _vv = _date.split('-')
+            _adate = datetime(int(_vv[0]), int(_vv[1]), int(_vv[2]))
+            cdo = time.strptime(_adate.strftime("%Y-%m-%d %H:%M:%S"), "%Y-%m-%d %H:%M:%S")
+            second = int(time.mktime(cdo))
+            # 与后端字段相同
+            _sign_list.append({
+                "now_days": datetime.now().day,  # 签到第几天了
+                "is_Check": _type,  # 哪天签到过了
+                "check_In_Days": self.get_continuous_sign_count(),  # 连续签到天数
+                "check_time": second  # 签到时间戳
+            })
         return _sign_list
-    #查询哪几天未签到
-    def get_not_sign(self):
-        key = self.author.id + ':' + str(datetime.now().year) + str(datetime.now().month)
-        for i in range(calendar.monthrange(datetime.now().year, datetime.now().month)[1]):
-            if(self.check_sign(i+1)==False):
-                return intReturn_1
     # 签到天数统计
     def get_sign_count(self):
         key = self.author.id + ':' + str(datetime.now().year) + str(datetime.now().month)
         return self.r.bitcount(key)
 
     # 连续签到天数
-    def get_continuous_sign_count(self,author):
-        key = author.id + ':' + str(datetime.now().year) + str(datetime.now().month)
+    def get_continuous_sign_count(self):
+        key = self.author.id + ':' + str(datetime.now().year) + str(datetime.now().month)
         continues_count = 0
         res = 0
         for i in range(calendar.monthrange(datetime.now().year, datetime.now().month)[1]):
+            if i + 1 > datetime.now().day:
+                # 如果当前日期已经超过今天，则退出循环
+                break
             if(self.check_sign(i+1)):
                 continues_count += 1
                 if(continues_count>res):
