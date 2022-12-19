@@ -102,6 +102,7 @@ class UserTagLable(Base):
     tag_name_id= Column(String(255), nullable=False)
     # 0用户  1动态  其他类型后面再加
     tag_name_type= Column(Integer, nullable=False,default=0)
+    tag_name_desc= Column(String(255), nullable=False,default='')
 
 
 

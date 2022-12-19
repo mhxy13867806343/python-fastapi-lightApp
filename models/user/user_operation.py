@@ -357,9 +357,17 @@ def post_isUserSampleNumId(db:Session,uid:int,type_num:str='')->bool:
         db.flush()
         return data
     return intReturn_1
+#云标签列表
 def get_tagLabel_list(db:Session)->list:
     try:
         data=db.query(UserTagLable).all()
+        return data
+    except Exception as e:
+        return intReturn_1
+#获取云标签详情信息
+def get_tag_label_details(db:Session,name:str)->dict:
+    try:
+        data=db.query(UserTagLable).filter(UserTagLable.tag_name==name).first()
         return data
     except Exception as e:
         return intReturn_1

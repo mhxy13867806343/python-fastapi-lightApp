@@ -33,3 +33,5 @@ class UserMyUpAvatarRet(BaseModel):
 class UserMyCircleOperationRet(BaseModel):
     c_content: Optional[str] = ''
     public_type:Optional[int]=0
+class UserTagLableRet(BaseModel):
+    name: Optional[str]

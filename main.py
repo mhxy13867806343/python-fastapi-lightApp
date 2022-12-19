@@ -55,7 +55,7 @@ async def add_process_time_header(request: Request, call_next):
     if login_url=='undefined':
         return JSONResponse({'msg': 'token验证失败,请重新登陆!', 'code': status.HTTP_401_UNAUTHORIZED})
     # print(login_url,'222查看')
-    token_url=['users/cloud','emails/code','users/hotidlist','users/hotid','dicts/hot','dicts/childList','dicts/childAdd','dicts/add','emoji/list','dicts/list','home/list','histry/upload','users/login','users/register','histry/soupfapig','docs','openapi.json',
+    token_url=['users/cloud','users/clode','emails/code','users/hotidlist','users/hotid','dicts/hot','dicts/childList','dicts/childAdd','dicts/add','emoji/list','dicts/list','home/list','histry/upload','users/login','users/register','histry/soupfapig','docs','openapi.json',
                'emails/send']
     user_uploadImg=['.jpg','.png','.gif','.jpeg','webp']
     if (login_url in token_url):  # 屏蔽注册、登录接口, 避免死循环
