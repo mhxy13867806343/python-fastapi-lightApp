@@ -6,7 +6,7 @@ from fastapi.security import OAuth2PasswordRequestForm
 from fastapi.responses import JSONResponse
 from datetime import datetime, timedelta
 from extend.get_db import get_db
-from models.user.user_operation import get_upyqs_list_pagenation,post_user_tag, get_user_tag, user_update_data, get_user_login_by_pwd, \
+from models.user.user_operation import get_tagLabel_list,get_upyqs_list_pagenation,post_user_tag, get_user_tag, user_update_data, get_user_login_by_pwd, \
     post_user_by_zc, get_user_by_id, get_user_by_dynamic, user_update_avter, delete_user_tag, post_user_pwd_update, \
 post_user_login_out,post_user_pwd_Count,post_add_user_signature,get_user_signature,post_user_circleOperation_my,\
     post_user_uploads_my,get_user_uploads_my,get_upyq_list_pagenation,get_upyq_list_total,get_user_sign_list,post_click_user_sign,\
@@ -27,7 +27,6 @@ users = APIRouter(
     prefix="/users",
     tags=["用户模块"],
 )
-
 
 
 
@@ -518,4 +517,12 @@ def senum(key:str='',current:int=1,page_size:int=20,db: Session = Depends(get_db
             "current": current,
              "count": total//page_size+1
          }
+    }
+@users.get("/cloud", tags=["用户模块"], name="云标签")
+def get_tagLabel_list1(db: Session = Depends(get_db)):
+    data= get_tagLabel_list(db)
+    return {
+        "code": status_code200,
+        "msg": "获取成功",
+        "data": data
     }

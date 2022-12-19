@@ -94,3 +94,14 @@ class UserSampleNumIdHot(Base):
     __tablename__ = 'user_sample_hot_num'
     hot_id = Column(Integer, primary_key=True, autoincrement=True)
     hot_id_num = Column(BigInteger, nullable=False, default=0)
+class UserTagLable(Base):
+    __tablename__ = 'user_tag_label'
+    tag_id = Column(Integer, primary_key=True, autoincrement=True)
+    tag_name = Column(String(255), nullable=False)
+    tag_name_count=Column(Integer,nullable=False,default=0)
+    tag_name_id= Column(String(255), nullable=False)
+    # 0用户  1动态  其他类型后面再加
+    tag_name_type= Column(Integer, nullable=False,default=0)
+
+
+

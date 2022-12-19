@@ -7,7 +7,7 @@ import datetime
 import time
 import uuid
 from extend.redis_db import dbRedis_del
-from models.user.user_model import User,Dynamic,MyLable,Signature,UserUpImages,CircleOperation,UserPoints,UserSampleNumId,UserSampleNumIdHot
+from models.user.user_model import UserTagLable,User,Dynamic,MyLable,Signature,UserUpImages,CircleOperation,UserPoints,UserSampleNumId,UserSampleNumIdHot
 from extend.dataReturn import intReturn_1, intReturn_2, intReturn_a
 from extend.redis_cache import create_redis_time
 from utils.signIn import AuthorId,AuthorSign
@@ -357,3 +357,9 @@ def post_isUserSampleNumId(db:Session,uid:int,type_num:str='')->bool:
         db.flush()
         return data
     return intReturn_1
+def get_tagLabel_list(db:Session)->list:
+    try:
+        data=db.query(UserTagLable).all()
+        return data
+    except Exception as e:
+        return intReturn_1
