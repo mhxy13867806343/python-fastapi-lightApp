@@ -140,25 +140,17 @@ def main(type:str='juejin'):
     thread = MyHotThread(type)
     thread.start()
     print('结束获取时间为:', time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()))
-def crawlerJob(type:str='juejin',num=24,sl=1):
-    print('定时获取')
-    print('获取数据类型',type)
-    print('开始获取时间为:',time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()))
-    print(f'每次获取{num}时间的数据')
-    print(f'每次获取间隔{sl}秒')
-    schedule.every(num).hours.do(main, type=type)
-    n=0
+def crawlerJob():
+    at='17:27'
+    schedule.every().day.at(at).do(main,'juejin')
+    schedule.every().day.at(at).do(main,'zhihu')
+    schedule.every().day.at(at).do(main,'baidu')
     while True:
-        n += 1
-        print(f'正在从{type}中获取数据...')
-        time.sleep(1)
-        print(f'第{n}次获取')
         schedule.run_pending()
-        time.sleep(sl)
+        time.sleep(1)
+
 def downJob():
-    crawlerJob('juejin')
-    crawlerJob('zhihu')
-    crawlerJob('baidu')
+    crawlerJob()
 def downJobjuejin():
     try:
         headers = {
@@ -194,4 +186,4 @@ def saveDbEmoji():
     except Exception as e:
         print(e,'保存失败')
 if __name__ == '__main__':
-    pass
+    downJob()

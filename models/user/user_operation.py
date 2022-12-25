@@ -58,6 +58,7 @@ def post_user_by_zc(db:Session,username:str,password:str):
         user_id=password+str(reg_time)
         user=User(username=username,password=password,reg_time=reg_time,
                   user_id=user_id,
+                  pwdTime=0,pwdCount=0,
                   user_number=user_number,avatar='',nickname=username
                   )
         db.add(user)

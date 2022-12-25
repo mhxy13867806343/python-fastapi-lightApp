@@ -4,7 +4,7 @@ from starlette.responses import JSONResponse
 from typing import Union,Optional,List
 from extend.status_code import status_code6010,status_code6006,status_code200,status_code6001,status_code6000,status_code6003,status_code6007,status_code6009
 from extend.get_db import get_db
-from models.dicts.dicts_operation import get_dict_child_list,add_child_dict, add_dict,get_dict_list,get_dict_list_total,get_dict_hot_list
+from models.dicts.dicts_operation import get_dict_child_list,add_child_dict, add_dict,get_dict_list,get_dict_list_total,get_dict_hot_list_total,get_dict_hot_list
 from models.dicts.dicts_ret_model import DictsRet,DistListRet
 dicts = APIRouter(
     prefix="/dicts",
@@ -72,10 +72,12 @@ async def childList(keys:str='',db:Session=Depends(get_db)):
         "data":data
     }
 @dicts.get("/hot",name="相关热搜展示内容")
-async def getHot(type:str='all',db:Session=Depends(get_db)):
-    data=get_dict_hot_list(db,type)
+async def getHot(type:str='all',current:int=1,page_size:int=20,db:Session=Depends(get_db)):
+    data=get_dict_hot_list(db,type,current,page_size)
+    total=get_dict_hot_list_total(db,type)
     return {
         "code": status_code200,
         "msg": "查询成功",
-        "data": data
+        "data": data,
+        "total":total
     }

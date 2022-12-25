@@ -45,9 +45,17 @@ def get_dict_child_list(db:Session,keys:str='')->[DictsDict]:
         dicts = db.query(DictsDict).filter(DictsDict.dict_id==all_Dict.id).all()
         return dicts
     return []
-def get_dict_hot_list(db:Session,type:str='all')->[CrawlerHot]:
+def get_dict_hot_list(db:Session,type:str='all',current:int=1,page_size:int=20)->[CrawlerHot]:
+    _sum = (current - 1) * page_size
     if type=='' or type=='all':
-        dicts = db.query(CrawlerHot).all()
+
+        dicts = db.query(CrawlerHot).offset(_sum).limit(page_size).all()
         return dicts
-    all_Dict = db.query(CrawlerHot).filter(CrawlerHot.hot_type==type).all()
+    all_Dict = db.query(CrawlerHot).filter(CrawlerHot.hot_type==type).order_by(CrawlerHot.hot_time.desc()).offset(_sum).limit(page_size).all()
     return all_Dict
+def get_dict_hot_list_total(db:Session,type:str='all')->int:
+    if type=='' or type=='all':
+        total = db.query(CrawlerHot).count()
+        return total
+    total = db.query(CrawlerHot).filter(CrawlerHot.hot_type==type).count()
+    return total
