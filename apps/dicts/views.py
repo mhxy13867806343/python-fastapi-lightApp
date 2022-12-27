@@ -72,12 +72,12 @@ async def childList(keys:str='',db:Session=Depends(get_db)):
         "data":data
     }
 @dicts.get("/hot",name="相关热搜展示内容")
-async def getHot(type:str='all',current:int=1,page_size:int=20,db:Session=Depends(get_db)):
-    data=get_dict_hot_list(db,type,current,page_size)
+async def getHot(type:str='all',curren_page:int=1,page_size:int=20,db:Session=Depends(get_db)):
+    data=get_dict_hot_list(db,type,curren_page,page_size)
     total=get_dict_hot_list_total(db,type)
     return {
         "code": status_code200,
         "msg": "查询成功",
-        "data": data,
+        "list": data,
         "total":total
     }

@@ -7,7 +7,12 @@ from extend.db import Base,LOCSESSION,ENGIN
 
 def current_timestamp():
     return int(time.time())
-
+class userPermissions(Base):
+    __tablename__ = 'userPermissions'
+    id = Column(Integer, primary_key=True,autoincrement=True)
+    user=Column(String(100),nullable=False,default='admin')
+    password=Column(String(100),nullable=False,default='admin')
+    type=Column(Integer,nullable=False,default=1) # 1:超级管理员
 class User(Base):
     __tablename__ = 'users'
     id = Column(Integer, primary_key=True,autoincrement=True)
